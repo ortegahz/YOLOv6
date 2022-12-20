@@ -1,7 +1,7 @@
 # YOLOv6n model
 model = dict(
     type='YOLOv6n',
-    pretrained=None,
+    pretrained='/media/manu-pc/tmp/yolov6n_coco_opt_8gpu_e600/weights/best_ckpt.pt',
     scales='/media/manu-pc/tmp/yolov6n_coco/weights/best_ckpt.pt',
     depth_multiple=0.33,
     width_multiple=0.25,
@@ -32,27 +32,26 @@ model = dict(
 solver = dict(
     optim='SGD',
     lr_scheduler='Cosine',
-    lr0=0.02, #0.01 # 0.02
-    lrf=0.01,
-    momentum=0.937,
-    weight_decay=0.0005,
-    warmup_epochs=3.0,
-    warmup_momentum=0.8,
-    warmup_bias_lr=0.1
+    lr0=0.0032,
+    lrf=0.12,
+    momentum=0.843,
+    weight_decay=0.00036,
+    warmup_epochs=2.0,
+    warmup_momentum=0.5,
+    warmup_bias_lr=0.05
 )
 
 data_aug = dict(
-    hsv_h=0.015,
-    hsv_s=0.7,
-    hsv_v=0.4,
-    degrees=0.0,
-    translate=0.1,
-    scale=0.5,
-    shear=0.0,
-    flipud=0.0,
+    hsv_h=0.0138,
+    hsv_s=0.664,
+    hsv_v=0.464,
+    degrees=0.373,
+    translate=0.245,
+    scale=0.898,
+    shear=0.602,
+    flipud=0.00856,
     fliplr=0.5,
     mosaic=1.0,
-    mixup=0.0,
+    mixup=0.243
 )
-# Choose Rep-block by the training Mode, choices=["repvgg", "hyper-search", "repopt"]
 training_mode='repopt'

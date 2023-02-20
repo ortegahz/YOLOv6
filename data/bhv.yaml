@@ -1,0 +1,10 @@
+# Please insure that your custom_dataset are put in same parent dir with YOLOv6_DIR
+train: /media/sdb/data/custom_behavior/images/train2017 # train images
+val: /media/sdb/data/custom_behavior/images/val2017 # val images
+#test: /media/sdb/data/custom_head/images/test2017 # test images (optional)
+
+# whether it is coco dataset, only coco dataset should be set to True.
+is_coco: False
+# Classes
+nc: 4  # number of classes
+names: ['stand', 'lookback', 'handsup', 'overdesk']  # class names

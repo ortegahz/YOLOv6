@@ -4,15 +4,15 @@
 #test: ../coco/images/test2017
 #anno_path: ../coco/annotations/instances_val2017.json
 
-#train: /media/manu/kingston/coco/images/train2017 # 118287 images
-#val: /media/manu/kingston/coco/images/val2017  # 5000 images
-#test: /media/manu/kingston/coco/images/test2017
-#anno_path: /media/manu/kingston/coco/annotations/instances_val2017.json
+train: /media/manu/kingston/coco/images/train2017 # 118287 images
+val: /media/manu/kingston/coco/images/val2017  # 5000 images
+test: /media/manu/kingston/coco/images/test2017
+anno_path: /media/manu/kingston/coco/annotations/instances_val2017.json
 
-train: /media/sdb/coco/images/train2017 # 118287 images
-val: /media/sdb/coco/images/val2017  # 5000 images
-test: /media/sdb/coco/images/test2017
-anno_path: /media/sdb/coco/annotations/instances_val2017.json
+#train: /media/sdb/coco/images/train2017 # 118287 images
+#val: /media/sdb/coco/images/val2017  # 5000 images
+#test: /media/sdb/coco/images/test2017
+#anno_path: /media/sdb/coco/annotations/instances_val2017.json
 
 # number of classes
 nc: 80

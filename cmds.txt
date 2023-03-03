@@ -5,8 +5,17 @@ python tools/infer.py --weights /home/manu/tmp/yolov6n_coco_opt_8gpu_e600/weight
 python tools/infer.py --weights /home/manu/tmp/yolov6n_scut_opt/weights/best_ckpt.pt --source /media/manu/samsung/pics/students.bmp --yaml data/scut.yaml --conf-thres 0.6 --img-size 640 640 --hide-labels
 python tools/infer.py --weights /home/manu/tmp/yolov6n_crhm_opt/weights/best_ckpt.pt --source /media/manu/samsung/pics/students.bmp --yaml data/crhm.yaml --conf-thres 0.4 --img-size 640 640 --hide-labels
 python tools/infer.py --weights /home/manu/tmp/yolov6n_scut_opt_8gpu_efo/weights/best_ckpt.pt --source /media/manu/samsung/pics/students_rs.bmp --yaml data/scut.yaml --conf-thres 0.4 --img-size 640 640 --hide-labels
-python tools/infer.py --weights /home/manu/tmp/yolov6n_scut_opt_8gpu_efo/weights/best_ckpt.pt --source /home/manu/tmp/outrgb.bmp --yaml data/scut.yaml --conf-thres 0.4 --img-size 640 640 --hide-labels
+
+python tools/infer.py --weights /home/manu/tmp/yolov6n_scut_opt_8gpu_efo_bs32_s1280/weights/best_ckpt.pt --source /home/manu/图片/vlcsnap-2023-03-02-18h54m09s432.png --yaml data/scut.yaml --conf-thres 0.5 --img-size 1280 1280 --hide-labels
+
+python tools/infer.py --weights /home/manu/tmp/yolov6n_scut_opt_8gpu_efo_bs32_s1280/weights/best_ckpt.pt --source /home/manu/图片/vlcsnap-2023-03-02-18h54m09s432.png --yaml data/scut.yaml --conf-thres 0.5 --img-size 1280 1280 --hide-labels
+
+python tools/infer.py --weights yolov6s6.pt --img 1280 1280 --webcam --webcam-addr 0
+
+python tools/infer.py --weights /home/manu/tmp/yolov6n_scut_opt_8gpu_efo/weights/best_ckpt.pt --source /media/manu/samsung/pics/csrnet_960_540.bmp --yaml data/scut.yaml --conf-thres 0.4 --img-size 640 640 --hide-labels
 python tools/infer.py --weights /home/manu/tmp/yolov6n_bhv_opt/weights/best_ckpt.pt --source /media/manu/samsung/pics/csrnet_960_540.bmp --yaml data/bhv.yaml --conf-thres 0.4 --img-size 640 640
+python tools/infer.py --weights /home/manu/tmp/yolov6n_scut_opt_8gpu_efo/weights/best_ckpt.pt --source /media/manu/kingstoo/widerface/data/retinaface/train/images/scut/PartA_00031.jpg --yaml data/scut.yaml --conf-thres 0.4 --img-size 640 640 --hide-labels
+python tools/infer.py --weights /home/manu/tmp/yolov6n_acfree_opt/weights/best_ckpt.pt --source /home/manu/tmp/outrgb.bmp --yaml data/acfree.yaml --conf-thres 0.4 --img-size 640 640 --hide-labels
 
 # train
 [official] screen python -m torch.distributed.launch --nproc_per_node 4 tools/train.py --batch 128 --conf configs/yolov6n.py --data data/coco.yaml --epoch 400 --device 0,1,2,3 --name yolov6n_coco
@@ -21,11 +30,13 @@ screen python -m torch.distributed.launch --nproc_per_node 8 tools/train.py --ba
 
 screen python -m torch.distributed.launch --nproc_per_node 8 tools/train.py --batch 128 --conf configs/repopt/yolov6n_opt.py --data data/coco.yaml --epoch 600 --device 0,1,2,3,4,5,6,7 --name yolov6n_coco_opt
 
-screen python -m torch.distributed.launch --nproc_per_node 8 tools/train.py --batch 128 --conf configs/repopt/yolov6n_opt_finetune.py --data data/scut.yaml --epoch 1000 --device 0,1,2,3,4,5,6,7 --name yolov6n_scut_opt --eval-final-only
+screen python -m torch.distributed.launch --nproc_per_node 8 tools/train.py --batch 32 --conf configs/repopt/yolov6n_opt_finetune.py --data data/scut.yaml --epoch 1000 --device 0,1,2,3,4,5,6,7 --name yolov6n_scut_opt --eval-final-only --img-size 1280
 
 screen python -m torch.distributed.launch --nproc_per_node 8 tools/train.py --batch 128 --conf configs/repopt/yolov6n_opt_finetune.py --data data/crhm.yaml --epoch 1000 --device 0,1,2,3,4,5,6,7 --name yolov6n_crhm_opt --eval-final-only
 
 screen python -m torch.distributed.launch --nproc_per_node 8 tools/train.py --batch 128 --conf configs/repopt/yolov6n_opt_finetune.py --data data/bhv.yaml --epoch 1000 --device 0,1,2,3,4,5,6,7 --name yolov6n_bhv_opt --eval-final-only
+
+screen python -m torch.distributed.launch --nproc_per_node 8 tools/train.py --batch 64 --conf configs/repopt/yolov6n_opt_finetune.py --data data/acfree.yaml --epoch 1000 --device 0,1,2,3,4,5,6,7 --name yolov6n_acfree_opt --eval-final-only
 
 [debug] python tools/train.py --batch 32 --conf configs/yolov6n.py --data data/coco.yaml --epoch 400 --device 0,1,2,3 --name yolov6n_coco
 [debug] python tools/train.py --batch 32 --conf configs/repopt/yolov6n_hs.py --data data/coco.yaml --epoch 400 --device 0,1,2,3 --name yolov6n_coco
@@ -40,7 +51,11 @@ python tools/eval.py --data data/coco.yaml --batch 32 --weights /home/manu/tmp/y
 python tools/eval.py --data data/coco.yaml --batch 32 --weights /home/manu/tmp/yolov6n_coco_opt/weights/last_ckpt.pt --task val --reproduce_640_eval
 python tools/eval.py --data data/coco.yaml --batch 32 --weights /home/manu/tmp/yolov6n_coco_opt/weights/best_ckpt.pt --task val --reproduce_640_eval
 
+python tools/eval.py --data data/scut.yaml --batch 32 --weights /home/manu/tmp/yolov6n_scut_opt_8gpu_efo/weights/best_ckpt.pt --task val --reproduce_640_eval
+
 python tools/eval.py --data data/crhm.yaml --batch 32 --weights /home/manu/tmp/yolov6n_crhm_opt/weights/best_ckpt.pt --task val --reproduce_640_eval
+
+python tools/eval.py --data data/scut.yaml --batch 32 --weights /home/manu/tmp/yolov6n_scut_opt_8gpu_efo_bs32_s1280/weights/last_ckpt.pt --task val --img-size 1280 --test_load_size 1280
 
 # export
 python ./deploy/ONNX/export_onnx.py --weights /home/manu/tmp/yolov6n_coco_opt/weights/best_ckpt.pt --img 640 --batch 1 --simplify
@@ -51,3 +66,4 @@ cp /home/manu/tmp/yolov6n_scut_opt_8gpu_efo/weights/best_ckpt.onnx /home/manu/tm
 
 # tensorboard
 tensorboard --logdir /home/manu/tmp/logs_yolov6
+tensorboard --logdir /home/manu/tmp/yolov6n_scut_opt19

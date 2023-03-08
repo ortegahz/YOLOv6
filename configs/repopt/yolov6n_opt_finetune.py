@@ -1,8 +1,8 @@
 # YOLOv6n model
 model = dict(
     type='YOLOv6n',
-    pretrained='/media/manu-pc/tmp/yolov6n_coco_opt_8gpu_e600/weights/best_ckpt.pt',
-    scales='/media/manu-pc/tmp/yolov6n_coco_hs_8gpu_efo/weights/best_ckpt.pt',
+    pretrained='/home/manu/tmp/yolov6n_coco_opt_8gpu_e600/weights/best_ckpt.pt',
+    scales='/home/manu/tmp/yolov6n_coco_hs_8gpu_efo/weights/best_ckpt.pt',
     depth_multiple=0.33,
     width_multiple=0.25,
     backbone=dict(

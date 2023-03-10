@@ -67,7 +67,7 @@ class ComputeLoss:
         # targets
         targets =self.preprocess(targets, batch_size, gt_bboxes_scale)
         gt_labels = targets[:, :, :1]
-        gt_bboxes = targets[:, :, 1:] #xyxy
+        gt_bboxes = targets[:, :, 1:5] #xyxy
         mask_gt = (gt_bboxes.sum(-1, keepdim=True) > 0).float()
 
         # pboxes
@@ -180,7 +180,10 @@ class ComputeLoss:
         max_len = max((len(l) for l in targets_list))
         targets = torch.from_numpy(np.array(list(map(lambda l:l + [[-1,0,0,0,0]]*(max_len - len(l)), targets_list)))[:,1:,:]).to(targets.device)
         batch_target = targets[:, :, 1:5].mul_(scale_tensor)
-        targets[..., 1:] = xywh2xyxy(batch_target)
+        targets[..., 1:5] = xywh2xyxy(batch_target)
+        scale_tensor_kps = torch.full((1, 5), scale_tensor[0]).type_as(scale_tensor)
+        targets[..., 5::3].mul_(scale_tensor_kps)
+        targets[..., 6::3].mul_(scale_tensor_kps)
         return targets
 
     def bbox_decode(self, anchor_points, pred_dist):

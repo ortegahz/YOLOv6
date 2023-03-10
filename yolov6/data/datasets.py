@@ -26,6 +26,7 @@ from .data_augment import (
     mixup,
     random_affine,
     mosaic_augmentation,
+    debug_image_write,
 )
 from yolov6.utils.events import LOGGER
 
@@ -125,7 +126,7 @@ class TrainValDataset(Dataset):
                 w *= ratio
                 h *= ratio
                 # new boxes
-                boxes = np.copy(labels[:, 1:])
+                boxes = np.copy(labels[:, 1:5])
                 boxes[:, 0] = (
                     w * (labels[:, 1] - labels[:, 3] / 2) + pad[0]
                 )  # top left x
@@ -138,7 +139,17 @@ class TrainValDataset(Dataset):
                 boxes[:, 3] = (
                     h * (labels[:, 2] + labels[:, 4] / 2) + pad[1]
                 )  # bottom right y
-                labels[:, 1:] = boxes
+                labels[:, 1:5] = boxes
+
+                kpss = np.copy(labels[:, 5:])
+                if kpss.shape[1] == 3 * 5:
+                    kpss[:, 0::3] = (
+                        w * kpss[:, 0::3] + pad[0]
+                    )
+                    kpss[:, 1::3] = (
+                        h * kpss[:, 1::3] + pad[1]
+                    )
+                    labels[:, 5:] = kpss
 
             if self.augment:
                 img, labels = random_affine(
@@ -157,17 +168,30 @@ class TrainValDataset(Dataset):
             labels[:, [1, 3]] = labels[:, [1, 3]].clip(0, w - 1e-3)  # x1, x2
             labels[:, [2, 4]] = labels[:, [2, 4]].clip(0, h - 1e-3)  # y1, y2
 
-            boxes = np.copy(labels[:, 1:])
+            boxes = np.copy(labels[:, 1:5])
             boxes[:, 0] = ((labels[:, 1] + labels[:, 3]) / 2) / w  # x center
             boxes[:, 1] = ((labels[:, 2] + labels[:, 4]) / 2) / h  # y center
             boxes[:, 2] = (labels[:, 3] - labels[:, 1]) / w  # width
             boxes[:, 3] = (labels[:, 4] - labels[:, 2]) / h  # height
-            labels[:, 1:] = boxes
+            labels[:, 1:5] = boxes
+
+            if labels.shape[1] == 5 + 3 * 5:
+                labels[:, 5::3] = labels[:, 5::3].clip(0, w - 1e-3)  # kpsx
+                labels[:, 6::3] = labels[:, 6::3].clip(0, h - 1e-3)  # kpsy
+                kpss = np.copy(labels[:, 5:])
+                kpss[:, 0::3] = kpss[:, 0::3] / w
+                kpss[:, 1::3] = kpss[:, 1::3] / h
+                labels[:, 5:] = kpss
 
         if self.augment:
             img, labels = self.general_augment(img, labels)
 
-        labels_out = torch.zeros((len(labels), 6))
+        # debug_image_write(img, labels, img_name='augment_final', mode='yolov5')
+
+        if labels.shape[1] == 5 + 3 * 5:
+            labels_out = torch.zeros((len(labels), 6 + 3 * 5))
+        else:
+            labels_out = torch.zeros((len(labels), 6))
         if len(labels):
             labels_out[:, 1:] = torch.from_numpy(labels)
 
@@ -415,12 +439,16 @@ class TrainValDataset(Dataset):
             img = np.flipud(img)
             if nl:
                 labels[:, 2] = 1 - labels[:, 2]
+                if labels.shape[1] == 5 + 3 * 5:
+                    labels[:, 6::3] = 1 - labels[:, 6::3]
 
         # Flip left-right
         if random.random() < self.hyp["fliplr"]:
             img = np.fliplr(img)
             if nl:
                 labels[:, 1] = 1 - labels[:, 1]
+                if labels.shape[1] == 5 + 3 * 5:
+                    labels[:, 5::3] = 1 - labels[:, 5::3]
 
         return img, labels
 
@@ -503,10 +531,10 @@ class TrainValDataset(Dataset):
                     labels = np.array(labels, dtype=np.float32)
                 if len(labels):
                     assert all(
-                        len(l) == 5 for l in labels
+                        len(l) == 5 or len(l) == 5 + 5 * 3 for l in labels
                     ), f"{lb_path}: wrong label format."
                     assert (
-                        labels >= 0
+                        labels[:, :5] >= 0  # l xc yc w h
                     ).all(), f"{lb_path}: Label values error: all values in label file must > 0"
                     assert (
                         labels[:, 1:] <= 1

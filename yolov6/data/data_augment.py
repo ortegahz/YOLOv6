@@ -5,6 +5,7 @@
 
 import math
 import random
+import os
 
 import cv2
 import numpy as np
@@ -86,6 +87,17 @@ def random_affine(img, labels=(), degrees=10, translate=.1, scale=.1, shear=10,
 
     # Transform label coordinates
     if n:
+        # 5 key points
+        if labels.shape[1] == 5 + 3 * 5:
+            kpss_t = np.ones((n * 5, 3))
+            kpss = labels[:, 5:].reshape(n * 5, 3)
+            kpss_t[:, :2] = kpss[:, :2]
+            kpss_n = kpss_t @ M.T  # transform
+            kpss_n[:, -1] = kpss[:, -1]
+            kpss_n[:, 0] = kpss_n[:, 0].clip(0, width)
+            kpss_n[:, 1] = kpss_n[:, 1].clip(0, height)
+            kpss_n = kpss_n.reshape(n, 5 * 3)
+
         new = np.zeros((n, 4))
 
         xy = np.ones((n * 4, 3))
@@ -106,6 +118,8 @@ def random_affine(img, labels=(), degrees=10, translate=.1, scale=.1, shear=10,
         i = box_candidates(box1=labels[:, 1:5].T * s, box2=new.T, area_thr=0.1)
         labels = labels[i]
         labels[:, 1:5] = new[i]
+        if labels.shape[1] == 5 + 3 * 5:
+            labels[:, 5:] = kpss_n[i]
 
     return img, labels
 
@@ -140,6 +154,45 @@ def get_transform_matrix(img_shape, new_shape, degrees, scale, shear, translate)
     return M, s
 
 
+def debug_image_write(img, labels, dir_root='/home/manu/tmp', img_name='img', mode='isf'):
+    h, w = img.shape[:2]
+    b, g, r = cv2.split(img)
+    img_draw = cv2.merge([b, g, r])
+    if np.ndim(labels) == 1:
+        labels = labels[np.newaxis, labels]
+    if mode == 'isf':
+        for i in range(len(labels)):
+            label = labels[i, :]
+            bbox = label[1:5]
+            cv2.rectangle(img_draw, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])), (0, 255, 0), 2)
+            kps = label[5:]
+            if not len(kps) == 3 * 5:
+                continue
+            kps_x, kps_y, kps_z = kps[::3], kps[1::3], kps[2::3]
+            for kp_x, kp_y, kp_z in zip(kps_x, kps_y, kps_z):
+                if kp_x == -1 or kp_y == -1 or kp_z == -1:
+                    continue
+                cv2.circle(img_draw, (int(kp_x), int(kp_y)), 3, (0, 0, 255), 1)
+    elif mode == 'yolov5':
+        for i in range(len(labels)):
+            label = labels[i, :]
+            bbox = label[1:5]
+            x1 = (bbox[0] - bbox[2] / 2) * w
+            y1 = (bbox[1] - bbox[3] / 2) * h
+            x2 = (bbox[0] + bbox[2] / 2) * w
+            y2 = (bbox[1] + bbox[3] / 2) * h
+            cv2.rectangle(img_draw, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
+            kps = label[5:]
+            if not len(kps) == 3 * 5:
+                continue
+            kps_x, kps_y, kps_z = kps[::3], kps[1::3], kps[2::3]
+            for kp_x, kp_y, kp_z in zip(kps_x, kps_y, kps_z):
+                if kp_x == -1 or kp_y == -1 or kp_z == -1:
+                    continue
+                cv2.circle(img_draw, (int(kp_x * w), int(kp_y * h)), 3, (0, 0, 255), 1)
+    cv2.imwrite(os.path.join(dir_root, f'{img_name}.bmp'), img_draw)
+
+
 def mosaic_augmentation(img_size, imgs, hs, ws, labels, hyp):
     '''Applies Mosaic augmentation.'''
     assert len(imgs) == 4, "Mosaic augmentation of current version only supports 4 images."
@@ -172,19 +225,37 @@ def mosaic_augmentation(img_size, imgs, hs, ws, labels, hyp):
         # Labels
         labels_per_img = labels[i].copy()
         if labels_per_img.size:
-            boxes = np.copy(labels_per_img[:, 1:])
+            boxes = np.copy(labels_per_img[:, 1:5])
             boxes[:, 0] = w * (labels_per_img[:, 1] - labels_per_img[:, 3] / 2) + padw  # top left x
             boxes[:, 1] = h * (labels_per_img[:, 2] - labels_per_img[:, 4] / 2) + padh  # top left y
             boxes[:, 2] = w * (labels_per_img[:, 1] + labels_per_img[:, 3] / 2) + padw  # bottom right x
             boxes[:, 3] = h * (labels_per_img[:, 2] + labels_per_img[:, 4] / 2) + padh  # bottom right y
-            labels_per_img[:, 1:] = boxes
+            labels_per_img[:, 1:5] = boxes
+
+            kpss = np.copy(labels_per_img[:, 5:])
+            if kpss.shape[1] == 3 * 5:
+                for j in range(5):
+                    kpss_x = kpss[:, j * 3 + 0]
+                    kpss_x[kpss_x > -1] = kpss_x[kpss_x > -1] * w + padw
+                    kpss_y = kpss[:, j * 3 + 1]
+                    kpss_y[kpss_y > -1] = kpss_y[kpss_y > -1] * h + padh
+                    kpss[:, j * 3 + 0] = kpss_x
+                    kpss[:, j * 3 + 1] = kpss_y
+                labels_per_img[:, 5:] = kpss
 
         labels4.append(labels_per_img)
 
     # Concat/clip labels
     labels4 = np.concatenate(labels4, 0)
-    for x in (labels4[:, 1:]):
+    for x in (labels4[:, 1:5]):
         np.clip(x, 0, 2 * s, out=x)
+    if labels4.shape[1] == 5 + 3 * 5:
+        for x in (labels4[:, 5::3]):
+            np.clip(x, 0, 2 * s, out=x)
+        for x in (labels4[:, 6::3]):
+            np.clip(x, 0, 2 * s, out=x)
+
+    # debug_image_write(img4, labels4, img_name='mosaic')
 
     # Augment
     img4, labels4 = random_affine(img4, labels4,
@@ -193,5 +264,7 @@ def mosaic_augmentation(img_size, imgs, hs, ws, labels, hyp):
                                   scale=hyp['scale'],
                                   shear=hyp['shear'],
                                   new_shape=(img_size, img_size))
+
+    # debug_image_write(img4, labels4, img_name='augment')
 
     return img4, labels4

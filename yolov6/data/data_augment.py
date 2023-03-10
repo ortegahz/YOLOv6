@@ -251,7 +251,7 @@ def mosaic_augmentation(img_size, imgs, hs, ws, labels, hyp):
         np.clip(x, 0, 2 * s, out=x)
     if labels4.shape[1] == 5 + 3 * 5:
         for x in (labels4[:, 5::3]):
-            np.clip(x, 0, 2 * s, out=x)
+            np.clip(x, 0, 2 * s, out=x)  # now z is points valid flag only
         for x in (labels4[:, 6::3]):
             np.clip(x, 0, 2 * s, out=x)
 

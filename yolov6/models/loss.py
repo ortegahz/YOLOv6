@@ -69,6 +69,9 @@ class ComputeLoss:
         gt_labels = targets[:, :, :1]
         gt_bboxes = targets[:, :, 1:5] #xyxy
         mask_gt = (gt_bboxes.sum(-1, keepdim=True) > 0).float()
+        gt_kpss = targets[:, :, 5:]  # [x y z] * 5
+        mask_gt_kpss = (gt_kpss[:, :, 2::3].sum(-1, keepdim=True) > -1 * 5).float()
+        mask_gt = mask_gt * mask_gt_kpss  # for new landmark modules gt_kpss must be valid
 
         # pboxes
         anchor_points_s = anchor_points / stride_tensor
@@ -184,7 +187,7 @@ class ComputeLoss:
         scale_tensor_kps = torch.full((1, 5), scale_tensor[0][0]).type_as(scale_tensor)
         targets[..., 5::3].mul_(scale_tensor_kps)
         targets[..., 6::3].mul_(scale_tensor_kps)
-        return targets
+        return targets  # bs x nt x 20
 
     def bbox_decode(self, anchor_points, pred_dist):
         if self.use_dfl:

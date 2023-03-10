@@ -47,7 +47,7 @@ screen python -m torch.distributed.launch --nproc_per_node 8 tools/train.py --ba
 
 screen python -m torch.distributed.launch --nproc_per_node 8 tools/train.py --batch 32 --conf configs/repopt/yolov6n_opt_finetune.py --data data/wdf.yaml --epoch 1000 --device 0,1,2,3,4,5,6,7 --name yolov6n_wdf_opt --eval-final-only
 
-[debug] python tools/train.py --batch 32 --conf configs/repopt/yolov6n_opt_finetune.py --data data/isf.yaml --epoch 400 --device 0,1,2,3 --name yolov6n_isf_opt --eval-final-only
+[debug] python tools/train.py --batch 8 --conf configs/repopt/yolov6n_opt_finetune.py --data data/isf.yaml --epoch 400 --device 0,1,2,3 --name yolov6n_isf_opt --eval-final-only
 
 screen python -m torch.distributed.launch --nproc_per_node 8 tools/train.py --batch 32 --conf configs/repopt/yolov6n_opt_finetune.py --data data/isf.yaml --epoch 1000 --device 0,1,2,3,4,5,6,7 --name yolov6n_isf_opt --eval-final-only
 

@@ -31,7 +31,7 @@ def select_candidates_in_gts(xy_centers, gt_bboxes, eps=1e-9):
     Return:
         (Tensor): shape(bs, n_max_boxes, num_total_anchors)
     """
-    n_anchors = xy_centers.size(0)
+    n_anchors = xy_centers.size(0)  # xy_centers.shape --> num_total_anchors * 2
     bs, n_max_boxes, _ = gt_bboxes.size()
     _gt_bboxes = gt_bboxes.reshape([-1, 4])
     xy_centers = xy_centers.unsqueeze(0).repeat(bs * n_max_boxes, 1, 1)

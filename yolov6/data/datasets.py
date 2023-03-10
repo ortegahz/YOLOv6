@@ -384,19 +384,35 @@ class TrainValDataset(Dataset):
                     img_info, self.class_names, save_path
                 )
 
-        img_paths, labels = list(
-            zip(
-                *[
-                    (
-                        img_path,
-                        np.array(info["labels"], dtype=np.float32)
-                        if info["labels"]
-                        else np.zeros((0, 5), dtype=np.float32),
-                    )
-                    for img_path, info in img_info.items()
-                ]
+        if self.task.lower() == "train":
+            img_paths, labels = list(
+                zip(
+                    *[
+                        (
+                            img_path,
+                            np.array(info["labels"], dtype=np.float32)
+                            if info["labels"]
+                            else np.zeros((0, 5 + 3 * 5), dtype=np.float32),
+                        )
+                        for img_path, info in img_info.items()
+                    ]
+                )
             )
-        )
+        else:
+            img_paths, labels = list(
+                zip(
+                    *[
+                        (
+                            img_path,
+                            np.array(info["labels"], dtype=np.float32)
+                            if info["labels"]
+                            else np.zeros((0, 5), dtype=np.float32),
+                        )
+                        for img_path, info in img_info.items()
+                    ]
+                )
+            )
+
         self.img_info = img_info
         LOGGER.info(
             f"{self.task}: Final numbers of valid images: {len(img_paths)}/ labels: {len(labels)}. "

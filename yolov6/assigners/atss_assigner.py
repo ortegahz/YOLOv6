@@ -96,7 +96,7 @@ class ATSSAssigner(nn.Module):
         candidate_idxs = []
         start_idx = 0
         for per_level_distances, per_level_boxes in zip(level_distances, n_level_bboxes):
-
+            # per_level_distances --> nb x nt x na
             end_idx = start_idx + per_level_boxes
             selected_k = min(self.topk, per_level_boxes)
             _, per_level_topk_idxs = per_level_distances.topk(selected_k, dim=-1, largest=False)
@@ -122,7 +122,7 @@ class ATSSAssigner(nn.Module):
         n_bs_max_boxes = self.bs * self.n_max_boxes
         _candidate_overlaps = torch.where(is_in_candidate > 0,
             overlaps, torch.zeros_like(overlaps))
-        candidate_idxs = candidate_idxs.reshape([n_bs_max_boxes, -1])
+        candidate_idxs = candidate_idxs.reshape([n_bs_max_boxes, -1])  # n_bs_max_boxes x 27
         assist_idxs = self.n_anchors * torch.arange(n_bs_max_boxes, device=candidate_idxs.device)
         assist_idxs = assist_idxs[:,None]
         faltten_idxs = candidate_idxs + assist_idxs

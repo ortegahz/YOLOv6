@@ -111,6 +111,12 @@ class Detect(nn.Module):
                 reg_feat = self.reg_convs[i](reg_x)
                 reg_output = self.reg_preds[i](reg_feat)
 
+                # save outputs
+                np.savetxt('/home/manu/tmp/rknn_output_c_%s.txt' % i, cls_output.clone().detach().cpu().flatten(),
+                           fmt="%f", delimiter="\n")
+                np.savetxt('/home/manu/tmp/rknn_output_r_%s.txt' % i, reg_output.clone().detach().cpu().flatten(),
+                           fmt="%f", delimiter="\n")
+
                 if self.use_dfl:
                     reg_output = reg_output.reshape([-1, 4, self.reg_max + 1, l]).permute(0, 2, 1, 3)
                     reg_output = self.proj_conv(F.softmax(reg_output, dim=1))

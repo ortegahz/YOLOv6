@@ -5,6 +5,7 @@ python tools/infer.py --weights /home/manu/tmp/yolov6n_coco_opt_8gpu_e600/weight
 python tools/infer.py --weights /home/manu/tmp/yolov6n_scut_opt/weights/best_ckpt.pt --source /media/manu/samsung/pics/students.bmp --yaml data/scut.yaml --conf-thres 0.6 --img-size 640 640 --hide-labels
 python tools/infer.py --weights /home/manu/tmp/yolov6n_crhm_opt/weights/best_ckpt.pt --source /media/manu/samsung/pics/students.bmp --yaml data/crhm.yaml --conf-thres 0.4 --img-size 640 640 --hide-labels
 python tools/infer.py --weights /home/manu/tmp/yolov6n_scut_opt_8gpu_efo/weights/best_ckpt.pt --source /media/manu/samsung/pics/students_rs.bmp --yaml data/scut.yaml --conf-thres 0.4 --img-size 640 640 --hide-labels
+python tools/infer.py --weights /home/manu/tmp/yolov6n_scut_opt_8gpu_efo/weights/best_ckpt.pt --source /home/manu/nfs/tmp/install/rknn_yolov5_demo_Linux/model/sylgd_rp.bmp --yaml data/scut.yaml --conf-thres 0.4 --img-size 1280 1280
 
 python tools/infer.py --weights /home/manu/tmp/yolov6n_scut_opt_8gpu_efo_bs32_s1280/weights/best_ckpt.pt --source /media/manu/samsung/pics/students.bmp --yaml data/scut.yaml --conf-thres 0.4 --img-size 1280 1280 --hide-labels
 python tools/infer.py --weights /home/manu/tmp/yolov6n_scut_opt_8gpu_efo_bs32_s1280/weights/best_ckpt.pt --source /media/manu/kingstoo/widerface/data/retinaface/train/images/scut/PartA_00033.jpg --yaml data/scut.yaml --conf-thres 0.4 --img-size 1280 1280 --hide-labels
@@ -70,7 +71,7 @@ python tools/eval.py --data data/scut.yaml --batch 32 --weights /home/manu/tmp/y
 python ./deploy/ONNX/export_onnx.py --weights /home/manu/tmp/yolov6n_coco_opt/weights/best_ckpt.pt --img 640 --batch 1 --simplify
 cp /home/manu/tmp/yolov6n_coco_opt/weights/best_ckpt.onnx /home/manu/tmp/acfree.onnx -rvf
 
-python ./deploy/ONNX/export_onnx.py --weights /home/manu/tmp/yolov6n_scut_opt_8gpu_efo/weights/best_ckpt.pt --img 640 --batch 1 --simplify
+python ./deploy/ONNX/export_onnx.py --weights /home/manu/tmp/yolov6n_scut_opt_8gpu_efo/weights/best_ckpt.pt --img 1280 --batch 1 --simplify
 cp /home/manu/tmp/yolov6n_scut_opt_8gpu_efo/weights/best_ckpt.onnx /home/manu/tmp/acfree.onnx -rvf
 
 python ./deploy/ONNX/export_onnx.py --weights /home/manu/tmp/yolov6n_bhv_opt_8gpu_efo/weights/best_ckpt.pt --img 640 --batch 1 --simplify

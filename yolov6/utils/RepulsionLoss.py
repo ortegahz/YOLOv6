@@ -22,9 +22,20 @@ def smooth_ln(x, sigma=0.5):
     )
 
 def repulsion_loss(pbox, gtbox, fg_mask, sigma_repgt=0.9, sigma_repbox=0, pnms=0, gtnms=0):#nms=0
+    """
+
+    :param pbox: bs x na x 4
+    :param gtbox: bs x na x 4
+    :param fg_mask: bs x na
+    :param sigma_repgt:
+    :param sigma_repbox:
+    :param pnms:
+    :param gtnms:
+    :return:
+    """
     loss_repgt=torch.zeros(1).to(pbox.device)
     loss_repbox=torch.zeros(1).to(pbox.device)
-    bbox_mask = fg_mask.unsqueeze(-1).repeat([1, 1, 4])
+    bbox_mask = fg_mask.unsqueeze(-1).repeat([1, 1, 4])  # bs x na x 4
     bs = 0
     pbox = pbox.detach()
     gtbox = gtbox.detach()

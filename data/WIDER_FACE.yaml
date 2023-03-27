@@ -1,6 +1,10 @@
 # Please insure that your custom_dataset are put in same parent dir with YOLOv6_DIR
-train: ../widerface/images/train  # 12880 images
-val: ../widerface/images/val  # 3226 images
+
+train: /media/manu/kingstoo/yolov5/custom_widerface_yolov6/images/train  # 12880 images
+val: /media/manu/kingstoo/yolov5/custom_widerface_yolov6/images/val  # 3226 images
+
+#train: /media/sdb/data/custom_widerface_yolov6/images/train  # 12880 images
+#val: /media/sdb/data/custom_widerface_yolov6/images/val  # 3226 images
 
 # whether it is coco dataset, only coco dataset should be set to True.
 is_coco: False

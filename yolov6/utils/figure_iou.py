@@ -102,6 +102,8 @@ class IOUloss:
 
 def pairwise_bbox_iou(box1, box2, box_format='xywh'):
     """Calculate iou.
+    box1: np x 4
+    box2: np x 4
     This code is based on https://github.com/Megvii-BaseDetection/YOLOX/blob/main/yolox/utils/boxes.py
     """
     if box_format == 'xyxy':

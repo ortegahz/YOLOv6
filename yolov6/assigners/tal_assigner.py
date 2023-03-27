@@ -41,6 +41,7 @@ class TaskAlignedAssigner(nn.Module):
         Returns:
             target_labels (Tensor): shape(bs, num_total_anchors)
             target_bboxes (Tensor): shape(bs, num_total_anchors, 4)
+            target_ldmks (Tensor): shape(bs, num_total_anchors, 10)
             target_scores (Tensor): shape(bs, num_total_anchors, num_classes)
             fg_mask (Tensor): shape(bs, num_total_anchors)
         """
@@ -126,12 +127,12 @@ class TaskAlignedAssigner(nn.Module):
                         gt_labels,
                         gt_bboxes):
 
-        pd_scores = pd_scores.permute(0, 2, 1)
+        pd_scores = pd_scores.permute(0, 2, 1)  # bs x num_classes x num_total_anchors
         gt_labels = gt_labels.to(torch.long)
         ind = torch.zeros([2, self.bs, self.n_max_boxes], dtype=torch.long)
-        ind[0] = torch.arange(end=self.bs).view(-1, 1).repeat(1, self.n_max_boxes)
-        ind[1] = gt_labels.squeeze(-1)
-        bbox_scores = pd_scores[ind[0], ind[1]]
+        ind[0] = torch.arange(end=self.bs).view(-1, 1).repeat(1, self.n_max_boxes)  # bs x n_max_boxes
+        ind[1] = gt_labels.squeeze(-1)  # bs x n_max_boxes
+        bbox_scores = pd_scores[ind[0], ind[1]]  # bs x n_max_boxes x num_total_anchors
 
         overlaps = iou_calculator(gt_bboxes, pd_bboxes)
         align_metric = bbox_scores.pow(self.alpha) * overlaps.pow(self.beta)

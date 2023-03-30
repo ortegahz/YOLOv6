@@ -33,15 +33,15 @@ def select_candidates_in_gts(xy_centers, gt_bboxes, eps=1e-9):
     """
     n_anchors = xy_centers.size(0)
     bs, n_max_boxes, _ = gt_bboxes.size()
-    _gt_bboxes = gt_bboxes.reshape([-1, 4])
-    xy_centers = xy_centers.unsqueeze(0).repeat(bs * n_max_boxes, 1, 1)
-    gt_bboxes_lt = _gt_bboxes[:, 0:2].unsqueeze(1).repeat(1, n_anchors, 1)
-    gt_bboxes_rb = _gt_bboxes[:, 2:4].unsqueeze(1).repeat(1, n_anchors, 1)
+    _gt_bboxes = gt_bboxes.reshape([-1, 4])  # shape(bs*n_max_boxes, 4)
+    xy_centers = xy_centers.unsqueeze(0).repeat(bs * n_max_boxes, 1, 1)  # shape(bs*n_max_boxes, num_total_anchors, 2)
+    gt_bboxes_lt = _gt_bboxes[:, 0:2].unsqueeze(1).repeat(1, n_anchors, 1)  # (bs*n_max_boxes, num_total_anchors, 2)
+    gt_bboxes_rb = _gt_bboxes[:, 2:4].unsqueeze(1).repeat(1, n_anchors, 1)  # (bs*n_max_boxes, num_total_anchors, 2)
     b_lt = xy_centers - gt_bboxes_lt
     b_rb = gt_bboxes_rb - xy_centers
     bbox_deltas = torch.cat([b_lt, b_rb], dim=-1)
-    bbox_deltas = bbox_deltas.reshape([bs, n_max_boxes, n_anchors, -1])
-    return (bbox_deltas.min(axis=-1)[0] > eps).to(gt_bboxes.dtype)
+    bbox_deltas = bbox_deltas.reshape([bs, n_max_boxes, n_anchors, -1])  # (bs, n_max_boxes, num_total_anchors, 4)
+    return (bbox_deltas.min(axis=-1)[0] > eps).to(gt_bboxes.dtype)  # (bs, n_max_boxes, num_total_anchors)
 
 def select_highest_overlaps(mask_pos, overlaps, n_max_boxes):
     """if an anchor box is assigned to multiple gts,
@@ -55,15 +55,16 @@ def select_highest_overlaps(mask_pos, overlaps, n_max_boxes):
         fg_mask (Tensor): shape(bs, num_total_anchors)
         mask_pos (Tensor): shape(bs, n_max_boxes, num_total_anchors)
     """
-    fg_mask = mask_pos.sum(axis=-2)
+    fg_mask = mask_pos.sum(axis=-2)  # (bs, num_total_anchors)
     if fg_mask.max() > 1:
-        mask_multi_gts = (fg_mask.unsqueeze(1) > 1).repeat([1, n_max_boxes, 1])
-        max_overlaps_idx = overlaps.argmax(axis=1)
-        is_max_overlaps = F.one_hot(max_overlaps_idx, n_max_boxes)
-        is_max_overlaps = is_max_overlaps.permute(0, 2, 1).to(overlaps.dtype)
-        mask_pos = torch.where(mask_multi_gts, is_max_overlaps, mask_pos)
-        fg_mask = mask_pos.sum(axis=-2)
-    target_gt_idx = mask_pos.argmax(axis=-2)
+        mask_multi_gts = (fg_mask.unsqueeze(1) > 1).repeat([1, n_max_boxes, 1])  # (bs, n_max_boxes, num_total_anchors)
+        max_overlaps_idx = overlaps.argmax(axis=1)  # (bs, num_total_anchors)
+        is_max_overlaps = F.one_hot(max_overlaps_idx, n_max_boxes)  # (bs, num_total_anchors, n_max_boxes)
+        is_max_overlaps = is_max_overlaps.permute(0, 2, 1).to(overlaps.dtype)  # (bs, n_max_boxes, num_total_anchors)
+        mask_pos = torch.where(mask_multi_gts, is_max_overlaps, mask_pos)  # (bs, n_max_boxes, num_total_anchors)
+        fg_mask = mask_pos.sum(axis=-2)  # (bs, num_total_anchors)
+    target_gt_idx = mask_pos.argmax(axis=-2)  # (bs, num_total_anchors)
+    # mask_pos: (bs, n_max_boxes, num_total_anchors)
     return target_gt_idx, fg_mask , mask_pos
 
 def iou_calculator(box1, box2, eps=1e-9):

@@ -221,7 +221,7 @@ def mosaic_augmentation(img_size, imgs, hs, ws, labels, hyp):
             #labels4.append(labels)
             labels_per_img[:, 1:] = boxes
 
-        labels4.append(labels_per_img)
+            labels4.append(labels_per_img)
 
     # Concat/clip labels
     if len(labels4):

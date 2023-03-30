@@ -68,9 +68,12 @@ class TaskAlignedAssigner(nn.Module):
             gt_ldmks_  = gt_ldmks[start:end, ...]
             mask_gt_   = mask_gt[start:end, ...]
 
+            # (bs, n_max_boxes, num_total_anchors)
             mask_pos, align_metric, overlaps = self.get_pos_mask(
                 pd_scores_, pd_bboxes_, gt_labels_, gt_bboxes_, anc_points, mask_gt_)
 
+            # target_gt_idx, fg_mask: (bs, num_total_anchors)
+            # mask_pos: (bs, n_max_boxes, num_total_anchors)
             target_gt_idx, fg_mask, mask_pos = select_highest_overlaps(
                 mask_pos, overlaps, self.n_max_boxes)
 
@@ -79,9 +82,9 @@ class TaskAlignedAssigner(nn.Module):
                 gt_labels_, gt_bboxes_, gt_ldmks_, target_gt_idx, fg_mask)
 
             # normalize
-            align_metric *= mask_pos
-            pos_align_metrics = align_metric.max(axis=-1, keepdim=True)[0]
-            pos_overlaps = (overlaps * mask_pos).max(axis=-1, keepdim=True)[0]
+            align_metric *= mask_pos  # (bs, n_max_boxes, num_total_anchors)
+            pos_align_metrics = align_metric.max(axis=-1, keepdim=True)[0]  # (bs, n_max_boxes, 1)
+            pos_overlaps = (overlaps * mask_pos).max(axis=-1, keepdim=True)[0]  # (bs, n_max_boxes, 1)
             norm_align_metric = (align_metric * pos_overlaps / (pos_align_metrics + self.eps)).max(-2)[0].unsqueeze(-1)
             target_scores = target_scores * norm_align_metric
 
@@ -108,12 +111,22 @@ class TaskAlignedAssigner(nn.Module):
                      gt_bboxes,
                      anc_points,
                      mask_gt):
+        """
 
-        # get anchor_align metric
+        :param pd_scores: shape(bs, num_total_anchors, num_classes)
+        :param pd_bboxes: shape(bs, num_total_anchors, 4)
+        :param gt_labels: shape(bs, n_max_boxes, 1)
+        :param gt_bboxes: shape(bs, n_max_boxes, 4)
+        :param anc_points: shape(num_total_anchors, 2)
+        :param mask_gt: shape(bs, n_max_boxes, 1)
+        :return: shape(bs, n_max_boxes, num_total_anchors)
+        """
+
+        # get anchor_align metric (bs, n_max_boxes, num_total_anchors)
         align_metric, overlaps = self.get_box_metrics(pd_scores, pd_bboxes, gt_labels, gt_bboxes)
-        # get in_gts mask
+        # get in_gts mask (bs, n_max_boxes, num_total_anchors)
         mask_in_gts = select_candidates_in_gts(anc_points, gt_bboxes)
-        # get topk_metric mask
+        # get topk_metric mask (bs, n_max_boxes, num_total_anchors)
         mask_topk = self.select_topk_candidates(
             align_metric * mask_in_gts, topk_mask=mask_gt.repeat([1, 1, self.topk]).bool())
         # merge all mask to a final mask
@@ -126,6 +139,14 @@ class TaskAlignedAssigner(nn.Module):
                         pd_bboxes,
                         gt_labels,
                         gt_bboxes):
+        """
+
+        :param pd_scores: shape(bs, num_total_anchors, num_classes)
+        :param pd_bboxes: shape(bs, num_total_anchors, 4)
+        :param gt_labels: shape(bs, n_max_boxes, 1)
+        :param gt_bboxes: shape(bs, n_max_boxes, 4)
+        :return:
+        """
 
         pd_scores = pd_scores.permute(0, 2, 1)  # bs x num_classes x num_total_anchors
         gt_labels = gt_labels.to(torch.long)
@@ -134,8 +155,8 @@ class TaskAlignedAssigner(nn.Module):
         ind[1] = gt_labels.squeeze(-1)  # bs x n_max_boxes
         bbox_scores = pd_scores[ind[0], ind[1]]  # bs x n_max_boxes x num_total_anchors
 
-        overlaps = iou_calculator(gt_bboxes, pd_bboxes)
-        align_metric = bbox_scores.pow(self.alpha) * overlaps.pow(self.beta)
+        overlaps = iou_calculator(gt_bboxes, pd_bboxes)  # shape(bs, n_max_boxes, num_total_anchors)
+        align_metric = bbox_scores.pow(self.alpha) * overlaps.pow(self.beta)  # (bs, n_max_boxes, num_total_anchors)
 
         return align_metric, overlaps
 
@@ -143,14 +164,24 @@ class TaskAlignedAssigner(nn.Module):
                                metrics,
                                largest=True,
                                topk_mask=None):
+        """
+
+        :param metrics: shape(bs, n_max_boxes, num_total_anchors)
+        :param largest:
+        :param topk_mask: shape(bs, n_max_boxes, topk)
+        :return:
+        """
 
         num_anchors = metrics.shape[-1]
+        # shape(bs, n_max_boxes, topk)
         topk_metrics, topk_idxs = torch.topk(
             metrics, self.topk, axis=-1, largest=largest)
         if topk_mask is None:
             topk_mask = (topk_metrics.max(axis=-1, keepdim=True) > self.eps).tile(
                 [1, 1, self.topk])
+        # shape(bs, n_max_boxes, topk)
         topk_idxs = torch.where(topk_mask, topk_idxs, torch.zeros_like(topk_idxs))
+        # (bs, n_max_boxes, topk, num_total_anchors).sum(axis=-2) --> (bs, n_max_boxes, num_total_anchors)
         is_in_topk = F.one_hot(topk_idxs, num_anchors).sum(axis=-2)
         is_in_topk = torch.where(is_in_topk > 1,
             torch.zeros_like(is_in_topk), is_in_topk)
@@ -162,20 +193,29 @@ class TaskAlignedAssigner(nn.Module):
                     gt_ldmks,
                     target_gt_idx,
                     fg_mask):
+        """
+
+        :param gt_labels: shape(bs, n_max_boxes, 1)
+        :param gt_bboxes: shape(bs, n_max_boxes, 4)
+        :param gt_ldmks: shape(bs, n_max_boxes, 10)
+        :param target_gt_idx: shape(bs, num_total_anchors)
+        :param fg_mask: shape(bs, num_total_anchors)
+        :return:
+        """
 
         # assigned target labels
-        batch_ind = torch.arange(end=self.bs, dtype=torch.int64, device=gt_labels.device)[...,None]
-        target_gt_idx = target_gt_idx + batch_ind * self.n_max_boxes
-        target_labels = gt_labels.long().flatten()[target_gt_idx]
+        batch_ind = torch.arange(end=self.bs, dtype=torch.int64, device=gt_labels.device)[..., None]  # (bs, 1)
+        target_gt_idx = target_gt_idx + batch_ind * self.n_max_boxes  # (bs, num_total_anchors)
+        target_labels = gt_labels.long().flatten()[target_gt_idx]  # (bs, num_total_anchors)
 
         # assigned target boxes
-        target_bboxes = gt_bboxes.reshape([-1, 4])[target_gt_idx]
-        target_ldmks = gt_ldmks.reshape([-1, 10])[target_gt_idx]
+        target_bboxes = gt_bboxes.reshape([-1, 4])[target_gt_idx]  # (bs, num_total_anchors, 4)
+        target_ldmks = gt_ldmks.reshape([-1, 10])[target_gt_idx]  # (bs, num_total_anchors, 10)
 
         # assigned target scores
-        target_labels[target_labels<0] = 0
-        target_scores = F.one_hot(target_labels, self.num_classes)
-        fg_scores_mask  = fg_mask[:, :, None].repeat(1, 1, self.num_classes)
+        target_labels[target_labels<0] = 0  # (bs, num_total_anchors)
+        target_scores = F.one_hot(target_labels, self.num_classes)  # (bs, num_total_anchors, num_classes)
+        fg_scores_mask  = fg_mask[:, :, None].repeat(1, 1, self.num_classes)  # (bs, num_total_anchors, num_classes)
         target_scores = torch.where(fg_scores_mask > 0, target_scores,
                                         torch.full_like(target_scores, 0))
 

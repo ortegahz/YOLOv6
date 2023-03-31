@@ -43,14 +43,15 @@ class Detect(nn.Module):
 
         # Efficient decoupled head layers
         for i in range(num_layers):
-            idx = i*7
+            idx = i * 8
             self.stems.append(head_layers[idx])
             self.cls_convs.append(head_layers[idx+1])
             self.reg_convs.append(head_layers[idx+2])
-            self.cls_preds.append(head_layers[idx+3])
-            self.reg_preds.append(head_layers[idx+4])
-            self.cls_preds_ab.append(head_layers[idx+5])
-            self.reg_preds_ab.append(head_layers[idx+6])
+            self.reg_convs.append(head_layers[idx+3])
+            self.cls_preds.append(head_layers[idx+4])
+            self.reg_preds.append(head_layers[idx+5])
+            self.cls_preds_ab.append(head_layers[idx+6])
+            self.reg_preds_ab.append(head_layers[idx+7])
 
     def initialize_biases(self):
 
@@ -107,7 +108,8 @@ class Detect(nn.Module):
                 reg_x = x[i]
 
                 cls_feat = self.cls_convs[i](cls_x)
-                reg_feat = self.reg_convs[i](reg_x)
+                reg_feat = self.reg_convs[i*2](reg_x)
+                reg_feat = self.reg_convs[i*2+1](reg_feat)
 
                 #anchor_base
                 cls_output_ab = self.cls_preds_ab[i](cls_feat)
@@ -152,7 +154,8 @@ class Detect(nn.Module):
                 reg_x = x[i]
 
                 cls_feat = self.cls_convs[i](cls_x)
-                reg_feat = self.reg_convs[i](reg_x)
+                reg_feat = self.reg_convs[i*2](reg_x)
+                reg_feat = self.reg_convs[i*2+1](reg_feat)
 
                 #anchor_free
                 cls_output = self.cls_preds[i](cls_feat)
@@ -223,6 +226,13 @@ def EffiDeHead(channels_list, num_anchors, num_classes, reg_max=16, num_layers=3
             kernel_size=3,
             stride=1
         ),
+        # reg_conv0_1
+        Conv(
+            in_channels=channels_list[chx[0]],
+            out_channels=channels_list[chx[0]],
+            kernel_size=3,
+            stride=1
+        ),
         # cls_pred0_af
         nn.Conv2d(
             in_channels=channels_list[chx[0]],
@@ -268,6 +278,13 @@ def EffiDeHead(channels_list, num_anchors, num_classes, reg_max=16, num_layers=3
             kernel_size=3,
             stride=1
         ),
+        # reg_conv1_1
+        Conv(
+            in_channels=channels_list[chx[1]],
+            out_channels=channels_list[chx[1]],
+            kernel_size=3,
+            stride=1
+        ),
         # cls_pred1_af
         nn.Conv2d(
             in_channels=channels_list[chx[1]],
@@ -307,6 +324,13 @@ def EffiDeHead(channels_list, num_anchors, num_classes, reg_max=16, num_layers=3
             stride=1
         ),
         # reg_conv2
+        Conv(
+            in_channels=channels_list[chx[2]],
+            out_channels=channels_list[chx[2]],
+            kernel_size=3,
+            stride=1
+        ),
+        # reg_conv2_1
         Conv(
             in_channels=channels_list[chx[2]],
             out_channels=channels_list[chx[2]],

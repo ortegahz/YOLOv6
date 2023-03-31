@@ -77,7 +77,7 @@ class TaskAlignedAssigner(nn.Module):
             target_gt_idx, fg_mask, mask_pos = select_highest_overlaps(
                 mask_pos, overlaps, self.n_max_boxes)
 
-            # assigned target
+            # assigned target (bs, num_total_anchors, num_classes)
             target_labels, target_bboxes, target_ldmks, target_scores = self.get_targets(
                 gt_labels_, gt_bboxes_, gt_ldmks_, target_gt_idx, fg_mask)
 
@@ -85,8 +85,8 @@ class TaskAlignedAssigner(nn.Module):
             align_metric *= mask_pos  # (bs, n_max_boxes, num_total_anchors)
             pos_align_metrics = align_metric.max(axis=-1, keepdim=True)[0]  # (bs, n_max_boxes, 1)
             pos_overlaps = (overlaps * mask_pos).max(axis=-1, keepdim=True)[0]  # (bs, n_max_boxes, 1)
-            norm_align_metric = (align_metric * pos_overlaps / (pos_align_metrics + self.eps)).max(-2)[0].unsqueeze(-1)
-            target_scores = target_scores * norm_align_metric
+            norm_align_metric = (align_metric * pos_overlaps / (pos_align_metrics + self.eps)).max(-2)[0].unsqueeze(-1)  # (bs, num_total_anchors, 1)
+            target_scores = target_scores * norm_align_metric  # (bs, num_total_anchors, num_classes)
 
             # append
             target_labels_lst.append(target_labels)

@@ -150,8 +150,10 @@ class Trainer:
                                                                 epoch_num, self.max_epoch, temperature, step_num)
             
             elif self.args.fuse_ab:       
-                total_loss, loss_items = self.compute_loss((preds[0],preds[3],preds[4]), targets, epoch_num, step_num) # YOLOv6_af
-                total_loss_ab, loss_items_ab = self.compute_loss_ab(preds[:3], targets, epoch_num, step_num) # YOLOv6_ab
+                # total_loss, loss_items = self.compute_loss((preds[0],preds[3],preds[4]), targets, epoch_num, step_num) # YOLOv6_af
+                # total_loss_ab, loss_items_ab = self.compute_loss_ab(preds[:3], targets, epoch_num, step_num) # YOLOv6_ab
+                total_loss, loss_items = self.compute_loss((preds[0],preds[-2],preds[-1]), targets, epoch_num, step_num)
+                total_loss_ab, loss_items_ab = self.compute_loss_ab((preds[0],preds[3],preds[4]), targets, epoch_num, step_num)
                 total_loss += total_loss_ab
                 loss_items += loss_items_ab
             else:
@@ -427,7 +429,7 @@ class Trainer:
         # If DDP mode
         ddp_mode = device.type != 'cpu' and args.rank != -1
         if ddp_mode:
-            model = DDP(model, device_ids=[args.local_rank], output_device=args.local_rank)
+            model = DDP(model, device_ids=[args.local_rank], output_device=args.local_rank, find_unused_parameters=True)
 
         return model
 

@@ -12,7 +12,10 @@ from yolov6.utils.events import LOGGER
 def build_optimizer(cfg, model):
     """ Build optimizer from cfg file."""
     g_bnw, g_w, g_b = [], [], []
-    for v in model.modules():
+    # for v in model.modules():
+    for v, vn in zip(model.modules(), model.named_modules()):
+        if 'face' not in vn[0]:
+            continue
         if hasattr(v, 'bias') and isinstance(v.bias, nn.Parameter):
             g_b.append(v.bias)
         if isinstance(v, nn.BatchNorm2d):

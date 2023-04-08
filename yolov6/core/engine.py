@@ -5,6 +5,7 @@ import os
 import time
 from copy import deepcopy
 import os.path as osp
+from itertools import cycle
 
 from tqdm import tqdm
 
@@ -52,6 +53,7 @@ class Trainer:
         self.data_dict = load_yaml(args.data_path)
         self.num_classes = self.data_dict['nc']
         self.train_loader, self.val_loader = self.get_data_loader(args, cfg, self.data_dict)
+        self.train_loader_face, self.val_loader_face = self.get_data_loader(args, cfg, self.data_dict, suffix='_face')
         # get model and optimizer
         self.distill_ns = True if self.args.distill and self.cfg.model.type in ['YOLOv6n','YOLOv6s'] else False
         model = self.get_model(args, cfg, self.num_classes, device)
@@ -87,6 +89,7 @@ class Trainer:
 
         self.max_epoch = args.epochs
         self.max_stepnum = len(self.train_loader)
+        self.max_stepnum_face = len(self.train_loader_face)
         self.batch_size = args.batch_size
         self.img_size = args.img_size
         self.vis_imgs_list = []
@@ -119,9 +122,15 @@ class Trainer:
     def train_in_loop(self, epoch_num):
         try:
             self.prepare_for_steps()
-            for self.step, self.batch_data in self.pbar:
-                self.train_in_steps(epoch_num, self.step)
-                self.print_details()
+            for self.step, (self.batch_data, self.batch_data_face) in self.pbar:
+                # self.train_in_steps(epoch_num, self.step, state='scut')
+                # self.mean_loss = (self.mean_loss * self.step + self.loss_items) / (self.step + 1)
+                self.train_in_steps(epoch_num, self.step, state='face')
+                self.mean_loss_face = (self.mean_loss_face * self.step + self.loss_items) / (self.step + 1)
+                if self.main_process:
+                    self.pbar.set_description(
+                        ('%10s' + '%10.4g' * self.loss_num) % (f'{self.epoch}/{self.max_epoch - 1}', *(self.mean_loss_face)))
+                # self.update_optimizer()
         except Exception as _:
             LOGGER.error('ERROR in training steps.')
             raise
@@ -132,8 +141,11 @@ class Trainer:
             raise
 
     # Training loop for batchdata
-    def train_in_steps(self, epoch_num, step_num):
-        images, targets = self.prepro_data(self.batch_data, self.device)
+    def train_in_steps(self, epoch_num, step_num, state='face'):
+        if state == 'face':
+            images, targets = self.prepro_data(self.batch_data_face, self.device)
+        else:  # state == 'scut'
+            images, targets = self.prepro_data(self.batch_data, self.device)
         # plot train_batch and save to tensorboard once an epoch
         if self.write_trainbatch_tb and self.main_process and self.step == 0:
             self.plot_train_batch(images, targets)
@@ -149,11 +161,15 @@ class Trainer:
                 total_loss, loss_items = self.compute_loss_distill(preds, t_preds, s_featmaps, t_featmaps, targets, \
                                                                 epoch_num, self.max_epoch, temperature, step_num)
             
-            elif self.args.fuse_ab:       
-                # total_loss, loss_items = self.compute_loss((preds[0],preds[3],preds[4]), targets, epoch_num, step_num) # YOLOv6_af
-                # total_loss_ab, loss_items_ab = self.compute_loss_ab(preds[:3], targets, epoch_num, step_num) # YOLOv6_ab
-                total_loss, loss_items = self.compute_loss((preds[0],preds[-2],preds[-1]), targets, epoch_num, step_num)
-                total_loss_ab, loss_items_ab = self.compute_loss_ab((preds[0],preds[3],preds[4]), targets, epoch_num, step_num)
+            elif self.args.fuse_ab:
+                if state == 'face':
+                    # total_loss, loss_items = self.compute_loss((preds[0],preds[3],preds[4]), targets, epoch_num, step_num) # YOLOv6_af
+                    # total_loss_ab, loss_items_ab = self.compute_loss_ab(preds[:3], targets, epoch_num, step_num) # YOLOv6_ab
+                    total_loss, loss_items = self.compute_loss((preds[0],preds[-2],preds[-1]), targets, epoch_num, step_num)
+                    total_loss_ab, loss_items_ab = self.compute_loss_ab((preds[0],preds[3],preds[4]), targets, epoch_num, step_num)
+                else:  # state == 'scut'
+                    total_loss, loss_items = self.compute_loss((preds[0],preds[-4],preds[-3]), targets, epoch_num, step_num)
+                    total_loss_ab, loss_items_ab = self.compute_loss_ab((preds[0],preds[1],preds[2]), targets, epoch_num, step_num)
                 total_loss += total_loss_ab
                 loss_items += loss_items_ab
             else:
@@ -201,7 +217,7 @@ class Trainer:
             self.evaluate_results = list(self.evaluate_results) + lr
 
             # log for tensorboard
-            write_tblog(self.tblogger, self.epoch, self.evaluate_results, self.mean_loss)
+            write_tblog(self.tblogger, self.epoch, self.evaluate_results, self.mean_loss_face)
             # save validation predictions to tensorboard
             write_tbimg(self.tblogger, self.vis_imgs_list, self.epoch, type='val')
 
@@ -303,24 +319,41 @@ class Trainer:
         if self.epoch == self.max_epoch - self.args.stop_aug_last_n_epoch:
             self.cfg.data_aug.mosaic = 0.0
             self.cfg.data_aug.mixup = 0.0
-            self.train_loader, self.val_loader = self.get_data_loader(self.args, self.cfg, self.data_dict)
+            self.train_loader, self.val_loader =\
+                self.get_data_loader(self.args, self.cfg, self.data_dict)
+            self.train_loader_face, self.val_loader_face =\
+                self.get_data_loader(self.args, self.cfg, self.data_dict, suffix='_face')
         self.model.train()
         if self.rank != -1:
             self.train_loader.sampler.set_epoch(self.epoch)
+            self.train_loader_face.sampler.set_epoch(self.epoch)
         self.mean_loss = torch.zeros(self.loss_num, device=self.device)
+        self.mean_loss_face = torch.zeros(self.loss_num, device=self.device)
         self.optimizer.zero_grad()
 
         LOGGER.info(('\n' + '%10s' * (self.loss_num + 1)) % (*self.loss_info,))
-        self.pbar = enumerate(self.train_loader)
+        # self.pbar = enumerate(self.train_loader)
+        # self.pbar_face = enumerate(self.train_loader_face)
+        # if self.main_process:
+        #     self.pbar = tqdm(self.pbar, total=self.max_stepnum, ncols=NCOLS, bar_format='{l_bar}{bar:10}{r_bar}{bar:-10b}')
+        #     self.pbar_face = tqdm(self.pbar_face, total=self.max_stepnum_face, ncols=NCOLS, bar_format='{l_bar}{bar:10}{r_bar}{bar:-10b}')
+        self.pbar = enumerate(zip(cycle(self.train_loader), self.train_loader_face))
         if self.main_process:
-            self.pbar = tqdm(self.pbar, total=self.max_stepnum, ncols=NCOLS, bar_format='{l_bar}{bar:10}{r_bar}{bar:-10b}')
+            self.pbar =\
+                tqdm(self.pbar, total=max(self.max_stepnum_face, self.max_stepnum),
+                     ncols=NCOLS, bar_format='{l_bar}{bar:10}{r_bar}{bar:-10b}')
 
     # Print loss after each steps
-    def print_details(self):
+    def print_details(self, state='scut'):
         if self.main_process:
-            self.mean_loss = (self.mean_loss * self.step + self.loss_items) / (self.step + 1)
-            self.pbar.set_description(('%10s' + '%10.4g' * self.loss_num) % (f'{self.epoch}/{self.max_epoch - 1}', \
-                                                                *(self.mean_loss)))
+            if state == 'scut':
+                self.mean_loss = (self.mean_loss * self.step + self.loss_items) / (self.step + 1)
+                self.pbar.set_description(('%10s' + '%10.4g' * self.loss_num) % (f'{self.epoch}/{self.max_epoch - 1}', \
+                                                                    *(self.mean_loss)))
+            else:  # state == 'face'
+                self.mean_loss_face = (self.mean_loss_face * self.step + self.loss_items) / (self.step + 1)
+                self.pbar.set_description(('%10s' + '%10.4g' * self.loss_num) % (f'{self.epoch}/{self.max_epoch - 1}', \
+                                                                    *(self.mean_loss_face)))
 
     def strip_model(self):
         if self.main_process:
@@ -352,8 +385,8 @@ class Trainer:
             self.last_opt_step = curr_step
 
     @staticmethod
-    def get_data_loader(args, cfg, data_dict):
-        train_path, val_path = data_dict['train'], data_dict['val']
+    def get_data_loader(args, cfg, data_dict, suffix=''):
+        train_path, val_path = data_dict['train' + suffix], data_dict['val' + suffix]
         # check data
         nc = int(data_dict['nc'])
         class_names = data_dict['names']

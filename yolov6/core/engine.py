@@ -51,7 +51,8 @@ class Trainer:
         # get data loader
         self.data_dict = load_yaml(args.data_path)
         self.num_classes = self.data_dict['nc']
-        self.train_loader, self.val_loader = self.get_data_loader(args, cfg, self.data_dict, suffix='_face')
+        self.train_loader, self.val_loader = self.get_data_loader(args, cfg, self.data_dict)
+        self.train_loader_face, self.val_loader_face = self.get_data_loader(args, cfg, self.data_dict, suffix='_face')
         # get model and optimizer
         self.distill_ns = True if self.args.distill and self.cfg.model.type in ['YOLOv6n','YOLOv6s'] else False
         model = self.get_model(args, cfg, self.num_classes, device)
@@ -86,7 +87,7 @@ class Trainer:
         self.model.nc, self.model.names = self.data_dict['nc'], self.data_dict['names']
 
         self.max_epoch = args.epochs
-        self.max_stepnum = len(self.train_loader)
+        self.max_stepnum = max(len(self.train_loader), len(self.train_loader_face))
         self.batch_size = args.batch_size
         self.img_size = args.img_size
         self.vis_imgs_list = []
@@ -304,14 +305,17 @@ class Trainer:
             self.cfg.data_aug.mosaic = 0.0
             self.cfg.data_aug.mixup = 0.0
             self.train_loader, self.val_loader = self.get_data_loader(self.args, self.cfg, self.data_dict)
+            self.train_loader_face, self.val_loader_face = \
+                self.get_data_loader(self.args, self.cfg, self.data_dict, suffix='_face')
         self.model.train()
         if self.rank != -1:
             self.train_loader.sampler.set_epoch(self.epoch)
+            self.train_loader_face.sampler.set_epoch(self.epoch)
         self.mean_loss = torch.zeros(self.loss_num, device=self.device)
         self.optimizer.zero_grad()
 
         LOGGER.info(('\n' + '%10s' * (self.loss_num + 1)) % (*self.loss_info,))
-        self.pbar = enumerate(self.train_loader)
+        self.pbar = enumerate(self.train_loader_face)
         if self.main_process:
             self.pbar = tqdm(self.pbar, total=self.max_stepnum, ncols=NCOLS, bar_format='{l_bar}{bar:10}{r_bar}{bar:-10b}')
 

@@ -36,21 +36,33 @@ class Detect(nn.Module):
         self.stems = nn.ModuleList()
         self.cls_convs = nn.ModuleList()
         self.reg_convs = nn.ModuleList()
+        self.face_cls_convs = nn.ModuleList()
+        self.face_reg_convs = nn.ModuleList()
         self.cls_preds = nn.ModuleList()
         self.reg_preds = nn.ModuleList()
+        self.face_cls_preds = nn.ModuleList()
+        self.face_reg_preds = nn.ModuleList()
         self.cls_preds_ab = nn.ModuleList()
         self.reg_preds_ab = nn.ModuleList()
+        self.face_cls_preds_ab = nn.ModuleList()
+        self.face_reg_preds_ab = nn.ModuleList()
 
         # Efficient decoupled head layers
         for i in range(num_layers):
-            idx = i*7
+            idx = i * 13
             self.stems.append(head_layers[idx])
             self.cls_convs.append(head_layers[idx+1])
             self.reg_convs.append(head_layers[idx+2])
-            self.cls_preds.append(head_layers[idx+3])
-            self.reg_preds.append(head_layers[idx+4])
-            self.cls_preds_ab.append(head_layers[idx+5])
-            self.reg_preds_ab.append(head_layers[idx+6])
+            self.face_cls_convs.append(head_layers[idx+3])
+            self.face_reg_convs.append(head_layers[idx+4])
+            self.cls_preds.append(head_layers[idx+5])
+            self.reg_preds.append(head_layers[idx+6])
+            self.face_cls_preds.append(head_layers[idx+7])
+            self.face_reg_preds.append(head_layers[idx+8])
+            self.cls_preds_ab.append(head_layers[idx+9])
+            self.reg_preds_ab.append(head_layers[idx+10])
+            self.face_cls_preds_ab.append(head_layers[idx+11])
+            self.face_reg_preds_ab.append(head_layers[idx+12])
 
     def initialize_biases(self):
 
@@ -63,6 +75,22 @@ class Detect(nn.Module):
             conv.weight = torch.nn.Parameter(w, requires_grad=True)
 
         for conv in self.cls_preds_ab:
+            b = conv.bias.view(-1, )
+            b.data.fill_(-math.log((1 - self.prior_prob) / self.prior_prob))
+            conv.bias = torch.nn.Parameter(b.view(-1), requires_grad=True)
+            w = conv.weight
+            w.data.fill_(0.)
+            conv.weight = torch.nn.Parameter(w, requires_grad=True)
+
+        for conv in self.face_cls_preds:
+            b = conv.bias.view(-1, )
+            b.data.fill_(-math.log((1 - self.prior_prob) / self.prior_prob))
+            conv.bias = torch.nn.Parameter(b.view(-1), requires_grad=True)
+            w = conv.weight
+            w.data.fill_(0.)
+            conv.weight = torch.nn.Parameter(w, requires_grad=True)
+
+        for conv in self.face_cls_preds_ab:
             b = conv.bias.view(-1, )
             b.data.fill_(-math.log((1 - self.prior_prob) / self.prior_prob))
             conv.bias = torch.nn.Parameter(b.view(-1), requires_grad=True)
@@ -85,6 +113,22 @@ class Detect(nn.Module):
             w = conv.weight
             w.data.fill_(0.)
             conv.weight = torch.nn.Parameter(w, requires_grad=True)
+
+        for conv in self.face_reg_preds:
+            b = conv.bias.view(-1, )
+            b.data.fill_(1.0)
+            conv.bias = torch.nn.Parameter(b.view(-1), requires_grad=True)
+            w = conv.weight
+            w.data.fill_(0.)
+            conv.weight = torch.nn.Parameter(w, requires_grad=True)
+
+        for conv in self.face_reg_preds_ab:
+            b = conv.bias.view(-1, )
+            b.data.fill_(1.0)
+            conv.bias = torch.nn.Parameter(b.view(-1), requires_grad=True)
+            w = conv.weight
+            w.data.fill_(0.)
+            conv.weight = torch.nn.Parameter(w, requires_grad=True)
         
         self.proj = nn.Parameter(torch.linspace(0, self.reg_max, self.reg_max + 1), requires_grad=False)
         self.proj_conv.weight = nn.Parameter(self.proj.view([1, self.reg_max + 1, 1, 1]).clone().detach(),
@@ -95,8 +139,12 @@ class Detect(nn.Module):
             device = x[0].device
             cls_score_list = []
             reg_dist_list = []
+            face_cls_score_list = []
+            face_reg_dist_list = []
             cls_score_list_ab = []
             reg_dist_list_ab = []
+            face_cls_score_list_ab = []
+            face_reg_dist_list_ab = []
 
             for i in range(self.nl):
                 b, _, h, w = x[i].shape
@@ -105,13 +153,19 @@ class Detect(nn.Module):
                 x[i] = self.stems[i](x[i])
                 cls_x = x[i]
                 reg_x = x[i]
+                face_cls_x = x[i]
+                face_reg_x = x[i]
 
                 cls_feat = self.cls_convs[i](cls_x)
                 reg_feat = self.reg_convs[i](reg_x)
+                face_cls_feat = self.face_cls_convs[i](face_cls_x)
+                face_reg_feat = self.face_reg_convs[i](face_reg_x)
 
                 #anchor_base
                 cls_output_ab = self.cls_preds_ab[i](cls_feat)
                 reg_output_ab = self.reg_preds_ab[i](reg_feat)
+                face_cls_output_ab = self.face_cls_preds_ab[i](face_cls_feat)
+                face_reg_output_ab = self.face_reg_preds_ab[i](face_reg_feat)
 
                 cls_output_ab = torch.sigmoid(cls_output_ab)
                 cls_output_ab = cls_output_ab.reshape(b, self.na, -1, h, w).permute(0,1,3,4,2)
@@ -121,27 +175,53 @@ class Detect(nn.Module):
                 reg_output_ab[..., 2:4] = ((reg_output_ab[..., 2:4].sigmoid() * 2) ** 2 ) * (self.anchors_init[i].reshape(1, self.na, 1, 1, 2).to(device))
                 reg_dist_list_ab.append(reg_output_ab.flatten(1,3))
 
+                face_cls_output_ab = torch.sigmoid(face_cls_output_ab)
+                face_cls_output_ab = face_cls_output_ab.reshape(b, self.na, -1, h, w).permute(0,1,3,4,2)
+                face_cls_score_list_ab.append(face_cls_output_ab.flatten(1,3))
+
+                face_reg_output_ab = face_reg_output_ab.reshape(b, self.na, -1, h, w).permute(0,1,3,4,2)
+                face_reg_output_ab[..., 2:4] = ((face_reg_output_ab[..., 2:4].sigmoid() * 2) ** 2 ) * (self.anchors_init[i].reshape(1, self.na, 1, 1, 2).to(device))
+                face_reg_dist_list_ab.append(face_reg_output_ab.flatten(1,3))
+
                 #anchor_free
                 cls_output = self.cls_preds[i](cls_feat)
                 reg_output = self.reg_preds[i](reg_feat)
+                face_cls_output = self.face_cls_preds[i](face_cls_feat)
+                face_reg_output = self.face_reg_preds[i](face_reg_feat)
 
                 cls_output = torch.sigmoid(cls_output)
                 cls_score_list.append(cls_output.flatten(2).permute((0, 2, 1)))
                 reg_dist_list.append(reg_output.flatten(2).permute((0, 2, 1)))
+
+                face_cls_output = torch.sigmoid(face_cls_output)
+                face_cls_score_list.append(face_cls_output.flatten(2).permute((0, 2, 1)))
+                face_reg_dist_list.append(face_reg_output.flatten(2).permute((0, 2, 1)))
                 
             
             cls_score_list_ab = torch.cat(cls_score_list_ab, axis=1)
             reg_dist_list_ab = torch.cat(reg_dist_list_ab, axis=1)
+            face_cls_score_list_ab = torch.cat(face_cls_score_list_ab, axis=1)
+            face_reg_dist_list_ab = torch.cat(face_reg_dist_list_ab, axis=1)
             cls_score_list = torch.cat(cls_score_list, axis=1)
             reg_dist_list = torch.cat(reg_dist_list, axis=1)
-            
-            return x, cls_score_list_ab, reg_dist_list_ab, cls_score_list, reg_dist_list
+            face_cls_score_list = torch.cat(face_cls_score_list, axis=1)
+            face_reg_dist_list = torch.cat(face_reg_dist_list, axis=1)
+
+            # return x, cls_score_list_ab, reg_dist_list_ab, cls_score_list, reg_dist_list
+            return x, \
+                   cls_score_list_ab, reg_dist_list_ab, \
+                   face_cls_score_list_ab, face_reg_dist_list_ab, \
+                   cls_score_list, reg_dist_list, \
+                   face_cls_score_list, face_reg_dist_list
 
         else:
             device = x[0].device
             cls_score_list = []
             reg_dist_list = []
             reg_ldmk_list = []
+            face_cls_score_list = []
+            face_reg_dist_list = []
+            face_reg_ldmk_list = []
 
             for i in range(self.nl):
                 b, _, h, w = x[i].shape
@@ -150,15 +230,23 @@ class Detect(nn.Module):
                 x[i] = self.stems[i](x[i])
                 cls_x = x[i]
                 reg_x = x[i]
+                face_cls_x = x[i]
+                face_reg_x = x[i]
 
                 cls_feat = self.cls_convs[i](cls_x)
                 reg_feat = self.reg_convs[i](reg_x)
+                face_cls_feat = self.face_cls_convs[i](face_cls_x)
+                face_reg_feat = self.face_reg_convs[i](face_reg_x)
 
                 #anchor_free
                 cls_output = self.cls_preds[i](cls_feat)
                 reg_output = self.reg_preds[i](reg_feat)
                 reg_output_box = reg_output[:, :-10, :, :]
                 reg_output_ldmk = reg_output[:, -10:, :, :]
+                face_cls_output = self.face_cls_preds[i](face_cls_feat)
+                face_reg_output = self.face_reg_preds[i](face_reg_feat)
+                face_reg_output_box = face_reg_output[:, :-10, :, :]
+                face_reg_output_ldmk = face_reg_output[:, -10:, :, :]
 
                 if self.use_dfl:
                     reg_output_box = reg_output_box.reshape([-1, 4, self.reg_max + 1, l]).permute(0, 2, 1, 3)
@@ -168,10 +256,17 @@ class Detect(nn.Module):
                 cls_score_list.append(cls_output.reshape([b, self.nc, l]))
                 reg_dist_list.append(reg_output_box.reshape([b, 4, l]))
                 reg_ldmk_list.append(reg_output_ldmk.reshape([b, 10, l]))
+                face_cls_output = torch.sigmoid(face_cls_output)
+                face_cls_score_list.append(face_cls_output.reshape([b, self.nc, l]))
+                face_reg_dist_list.append(face_reg_output_box.reshape([b, 4, l]))
+                face_reg_ldmk_list.append(face_reg_output_ldmk.reshape([b, 10, l]))
                 
             cls_score_list = torch.cat(cls_score_list, axis=-1).permute(0, 2, 1)
             reg_dist_list = torch.cat(reg_dist_list, axis=-1).permute(0, 2, 1)
             reg_ldmk_list = torch.cat(reg_ldmk_list, axis=-1).permute(0, 2, 1)
+            face_cls_score_list = torch.cat(face_cls_score_list, axis=-1).permute(0, 2, 1)
+            face_reg_dist_list = torch.cat(face_reg_dist_list, axis=-1).permute(0, 2, 1)
+            face_reg_ldmk_list = torch.cat(face_reg_ldmk_list, axis=-1).permute(0, 2, 1)
             
 
             #anchor_free
@@ -181,18 +276,29 @@ class Detect(nn.Module):
             pred_bboxes = dist2bbox(reg_dist_list, anchor_points, box_format='xywh')
             pred_bboxes *= stride_tensor
             
-            ldmk1 = (reg_ldmk_list[..., 0:2] + anchor_points) * stride_tensor
-            ldmk2 = (reg_ldmk_list[..., 2:4] + anchor_points) * stride_tensor
-            ldmk3 = (reg_ldmk_list[..., 4:6] + anchor_points) * stride_tensor
-            ldmk4 = (reg_ldmk_list[..., 6:8] + anchor_points) * stride_tensor
-            ldmk5 = (reg_ldmk_list[..., 8:10] + anchor_points) * stride_tensor
+            # ldmk1 = (reg_ldmk_list[..., 0:2] + anchor_points) * stride_tensor
+            # ldmk2 = (reg_ldmk_list[..., 2:4] + anchor_points) * stride_tensor
+            # ldmk3 = (reg_ldmk_list[..., 4:6] + anchor_points) * stride_tensor
+            # ldmk4 = (reg_ldmk_list[..., 6:8] + anchor_points) * stride_tensor
+            # ldmk5 = (reg_ldmk_list[..., 8:10] + anchor_points) * stride_tensor
+
+            face_pred_bboxes = dist2bbox(face_reg_dist_list, anchor_points, box_format='xywh')
+            face_pred_bboxes *= stride_tensor
+
+            ldmk1 = (face_reg_ldmk_list[..., 0:2] + anchor_points) * stride_tensor
+            ldmk2 = (face_reg_ldmk_list[..., 2:4] + anchor_points) * stride_tensor
+            ldmk3 = (face_reg_ldmk_list[..., 4:6] + anchor_points) * stride_tensor
+            ldmk4 = (face_reg_ldmk_list[..., 6:8] + anchor_points) * stride_tensor
+            ldmk5 = (face_reg_ldmk_list[..., 8:10] + anchor_points) * stride_tensor
 
             return torch.cat(
                 [
-                    pred_bboxes,
+                    # pred_bboxes,
+                    face_pred_bboxes,
                     ldmk1, ldmk2, ldmk3, ldmk4, ldmk5, 
                     torch.ones((b, pred_bboxes.shape[1], 1), device=pred_bboxes.device, dtype=pred_bboxes.dtype),
-                    cls_score_list
+                    # cls_score_list
+                    face_cls_score_list
                 ],
                 axis=-1)
 
@@ -223,6 +329,20 @@ def EffiDeHead(channels_list, num_anchors, num_classes, reg_max=16, num_layers=3
             kernel_size=3,
             stride=1
         ),
+        # face_cls_conv0
+        Conv(
+            in_channels=channels_list[chx[0]],
+            out_channels=channels_list[chx[0]],
+            kernel_size=3,
+            stride=1
+        ),
+        # face_reg_conv0
+        Conv(
+            in_channels=channels_list[chx[0]],
+            out_channels=channels_list[chx[0]],
+            kernel_size=3,
+            stride=1
+        ),
         # cls_pred0_af
         nn.Conv2d(
             in_channels=channels_list[chx[0]],
@@ -235,6 +355,18 @@ def EffiDeHead(channels_list, num_anchors, num_classes, reg_max=16, num_layers=3
             out_channels=4 * (reg_max + 1) + 10,
             kernel_size=1
         ),
+        # face_cls_pred0_af
+        nn.Conv2d(
+            in_channels=channels_list[chx[0]],
+            out_channels=num_classes,
+            kernel_size=1
+        ),
+        # face_reg_pred0_af
+        nn.Conv2d(
+            in_channels=channels_list[chx[0]],
+            out_channels=4 * (reg_max + 1) + 10,
+            kernel_size=1
+        ),
         # cls_pred0_3ab
         nn.Conv2d(
             in_channels=channels_list[chx[0]],
@@ -242,6 +374,18 @@ def EffiDeHead(channels_list, num_anchors, num_classes, reg_max=16, num_layers=3
             kernel_size=1
         ),
         # reg_pred0_3ab
+        nn.Conv2d(
+            in_channels=channels_list[chx[0]],
+            out_channels=4 * num_anchors,
+            kernel_size=1
+        ),
+        # face_cls_pred0_3ab
+        nn.Conv2d(
+            in_channels=channels_list[chx[0]],
+            out_channels=num_classes * num_anchors,
+            kernel_size=1
+        ),
+        # face_reg_pred0_3ab
         nn.Conv2d(
             in_channels=channels_list[chx[0]],
             out_channels=4 * num_anchors,
@@ -268,6 +412,20 @@ def EffiDeHead(channels_list, num_anchors, num_classes, reg_max=16, num_layers=3
             kernel_size=3,
             stride=1
         ),
+        # face_cls_conv1
+        Conv(
+            in_channels=channels_list[chx[1]],
+            out_channels=channels_list[chx[1]],
+            kernel_size=3,
+            stride=1
+        ),
+        # face_reg_conv1
+        Conv(
+            in_channels=channels_list[chx[1]],
+            out_channels=channels_list[chx[1]],
+            kernel_size=3,
+            stride=1
+        ),
         # cls_pred1_af
         nn.Conv2d(
             in_channels=channels_list[chx[1]],
@@ -280,6 +438,18 @@ def EffiDeHead(channels_list, num_anchors, num_classes, reg_max=16, num_layers=3
             out_channels=4 * (reg_max + 1) + 10,
             kernel_size=1
         ),
+        # face_cls_pred1_af
+        nn.Conv2d(
+            in_channels=channels_list[chx[1]],
+            out_channels=num_classes,
+            kernel_size=1
+        ),
+        # face_reg_pred1_af
+        nn.Conv2d(
+            in_channels=channels_list[chx[1]],
+            out_channels=4 * (reg_max + 1) + 10,
+            kernel_size=1
+        ),
         # cls_pred1_3ab
         nn.Conv2d(
             in_channels=channels_list[chx[1]],
@@ -287,6 +457,18 @@ def EffiDeHead(channels_list, num_anchors, num_classes, reg_max=16, num_layers=3
             kernel_size=1
         ),
         # reg_pred1_3ab
+        nn.Conv2d(
+            in_channels=channels_list[chx[1]],
+            out_channels=4 * num_anchors,
+            kernel_size=1
+        ),
+        # face_cls_pred1_3ab
+        nn.Conv2d(
+            in_channels=channels_list[chx[1]],
+            out_channels=num_classes * num_anchors,
+            kernel_size=1
+        ),
+        # face_reg_pred1_3ab
         nn.Conv2d(
             in_channels=channels_list[chx[1]],
             out_channels=4 * num_anchors,
@@ -313,6 +495,20 @@ def EffiDeHead(channels_list, num_anchors, num_classes, reg_max=16, num_layers=3
             kernel_size=3,
             stride=1
         ),
+        # face_cls_conv2
+        Conv(
+            in_channels=channels_list[chx[2]],
+            out_channels=channels_list[chx[2]],
+            kernel_size=3,
+            stride=1
+        ),
+        # face_reg_conv2
+        Conv(
+            in_channels=channels_list[chx[2]],
+            out_channels=channels_list[chx[2]],
+            kernel_size=3,
+            stride=1
+        ),
         # cls_pred2_af
         nn.Conv2d(
             in_channels=channels_list[chx[2]],
@@ -325,6 +521,18 @@ def EffiDeHead(channels_list, num_anchors, num_classes, reg_max=16, num_layers=3
             out_channels=4 * (reg_max + 1) + 10,
             kernel_size=1
         ),
+        # face_cls_pred2_af
+        nn.Conv2d(
+            in_channels=channels_list[chx[2]],
+            out_channels=num_classes,
+            kernel_size=1
+        ),
+        # face_reg_pred2_af
+        nn.Conv2d(
+            in_channels=channels_list[chx[2]],
+            out_channels=4 * (reg_max + 1) + 10,
+            kernel_size=1
+        ),
         # cls_pred2_3ab
         nn.Conv2d(
             in_channels=channels_list[chx[2]],
@@ -332,6 +540,18 @@ def EffiDeHead(channels_list, num_anchors, num_classes, reg_max=16, num_layers=3
             kernel_size=1
         ),
         # reg_pred2_3ab
+        nn.Conv2d(
+            in_channels=channels_list[chx[2]],
+            out_channels=4 * num_anchors,
+            kernel_size=1
+        ),
+        # face_cls_pred2_3ab
+        nn.Conv2d(
+            in_channels=channels_list[chx[2]],
+            out_channels=num_classes * num_anchors,
+            kernel_size=1
+        ),
+        # face_reg_pred2_3ab
         nn.Conv2d(
             in_channels=channels_list[chx[2]],
             out_channels=4 * num_anchors,

@@ -16,7 +16,7 @@ screen python -m torch.distributed.launch --nproc_per_node 8 tools/train.py --ba
 
 # evaluation
 python tools/infer.py --weights /home/manu/tmp/yolov6n_face.pt --source /media/manu/kingstoo/yolov6/WIDER_val/images --yaml data/WIDER_FACE.yaml --conf 0.02 --not-save-img --save-txt-widerface --name widerface_yolov6n
-python tools/infer.py --weights /home/manu/tmp/exp1/weights/last_ckpt.pt --source /media/manu/kingstoo/yolov6/WIDER_val/images --yaml data/WIDER_FACE.yaml --conf 0.02 --not-save-img --save-txt-widerface --name widerface_yolov6n
+python tools/infer.py --weights /home/manu/tmp/exp3/weights/last_ckpt.pt --source /media/manu/kingstoo/yolov6/WIDER_val/images --yaml data/WIDER_FACE.yaml --conf 0.02 --not-save-img --save-txt-widerface --name widerface_yolov6n
 
 python evaluation.py --pred ../runs/inference/widerface_yolov6n/labels/images/
 
@@ -44,9 +44,11 @@ Medium Val AP: 0.9044861233874076
 Hard   Val AP: 0.7830269414576623
 =================================================
 
-
-
-
+==================== mp_s480_e50 ====================
+Easy   Val AP: 0.9267561410092218
+Medium Val AP: 0.9022483605130677
+Hard   Val AP: 0.7797934442174989
+=================================================
 
 # tensorboard
 tensorboard --logdir runs/train/exp50 --bind_all

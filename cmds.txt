@@ -32,7 +32,7 @@ python tools/eval.py --data data/scut_kps.yaml --batch 32 --weights runs/train/e
 # evaluation
 python tools/infer.py --weights /home/manu/tmp/yolov6n_face.pt --source /media/manu/kingstoo/yolov6/WIDER_val/images --yaml data/WIDER_FACE.yaml --conf 0.02 --not-save-img --save-txt-widerface --name widerface_yolov6n
 python tools/infer.py --weights /home/manu/tmp/exp6/weights/last_ckpt.pt --source /media/manu/kingstoo/yolov6/WIDER_val/images --yaml data/WIDER_FACE.yaml --conf 0.02 --not-save-img --save-txt-widerface --name widerface_yolov6n
-python tools/infer.py --weights /home/manu/tmp/ofc_wdf_s480_dup/weights/last_ckpt.pt --source /media/manu/kingstoo/yolov6/WIDER_val/images --yaml data/WIDER_FACE.yaml --conf 0.02 --not-save-img --save-txt-widerface --name widerface_yolov6n
+python tools/infer.py --weights /home/manu/tmp/ofc_s480_mh/weights/last_ckpt.pt --source /media/manu/kingstoo/yolov6/WIDER_val/images --yaml data/WIDER_FACE.yaml --conf 0.02 --not-save-img --save-txt-widerface --name widerface_yolov6n
 
 python evaluation.py --pred ../runs/inference/widerface_yolov6n/labels/images/
 
@@ -54,7 +54,15 @@ Medium Val AP: 0.6368385041393938
 Hard   Val AP: 0.5108956399609096
 =================================================
 
+==================== Results ====================
+Easy   Val AP: 0.8814396281523669
+Medium Val AP: 0.8832307496204551
+Hard   Val AP: 0.7914361232666369
+=================================================
+
+
 
 # tensorboard
-tensorboard --logdir runs/train/exp48 --bind_all
+tensorboard --logdir /home/manu/tmp/ofc_s480 --bind_all
+tensorboard --logdir runs/train/exp50 --bind_all
 http://192.168.3.10:6006/

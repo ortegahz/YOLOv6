@@ -51,7 +51,7 @@ class Trainer:
         # get data loader
         self.data_dict = load_yaml(args.data_path)
         self.num_classes = self.data_dict['nc']
-        self.train_loader, self.val_loader = self.get_data_loader(args, cfg, self.data_dict)
+        self.train_loader, self.val_loader = self.get_data_loader(args, cfg, self.data_dict, suffix='_face')
         # get model and optimizer
         self.distill_ns = True if self.args.distill and self.cfg.model.type in ['YOLOv6n','YOLOv6s'] else False
         model = self.get_model(args, cfg, self.num_classes, device)
@@ -352,8 +352,8 @@ class Trainer:
             self.last_opt_step = curr_step
 
     @staticmethod
-    def get_data_loader(args, cfg, data_dict):
-        train_path, val_path = data_dict['train'], data_dict['val']
+    def get_data_loader(args, cfg, data_dict, suffix=''):
+        train_path, val_path = data_dict['train' + suffix], data_dict['val' + suffix]
         # check data
         nc = int(data_dict['nc'])
         class_names = data_dict['names']

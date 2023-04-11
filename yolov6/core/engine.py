@@ -124,6 +124,7 @@ class Trainer:
             # for self.step, self.batch_data in self.pbar:
             for self.step, (self.batch_data, self.batch_data_face) in self.pbar:
                 self.train_in_steps(epoch_num, self.step)
+                self.train_in_steps(epoch_num, self.step, state='face')
                 self.print_details()
         except Exception as _:
             LOGGER.error('ERROR in training steps.')
@@ -135,8 +136,11 @@ class Trainer:
             raise
 
     # Training loop for batchdata
-    def train_in_steps(self, epoch_num, step_num):
-        images, targets = self.prepro_data(self.batch_data_face, self.device)
+    def train_in_steps(self, epoch_num, step_num, state=''):
+        if state == 'face':
+            images, targets = self.prepro_data(self.batch_data_face, self.device)
+        else:
+            images, targets = self.prepro_data(self.batch_data, self.device)
         # plot train_batch and save to tensorboard once an epoch
         if self.write_trainbatch_tb and self.main_process and self.step == 0:
             self.plot_train_batch(images, targets)
@@ -152,11 +156,13 @@ class Trainer:
                 total_loss, loss_items = self.compute_loss_distill(preds, t_preds, s_featmaps, t_featmaps, targets, \
                                                                 epoch_num, self.max_epoch, temperature, step_num)
             
-            elif self.args.fuse_ab:       
-                # total_loss, loss_items = self.compute_loss((preds[0],preds[3],preds[4]), targets, epoch_num, step_num) # YOLOv6_af
-                # total_loss_ab, loss_items_ab = self.compute_loss_ab(preds[:3], targets, epoch_num, step_num) # YOLOv6_ab
-                total_loss, loss_items = self.compute_loss((preds[0],preds[-2],preds[-1]), targets, epoch_num, step_num)
-                total_loss_ab, loss_items_ab = self.compute_loss_ab((preds[0],preds[3],preds[4]), targets, epoch_num, step_num)
+            elif self.args.fuse_ab:
+                if state == 'face':
+                    total_loss, loss_items = self.compute_loss((preds[0],preds[-2],preds[-1]), targets, epoch_num, step_num)
+                    total_loss_ab, loss_items_ab = self.compute_loss_ab((preds[0],preds[3],preds[4]), targets, epoch_num, step_num)
+                else:
+                    total_loss, loss_items = self.compute_loss((preds[0],preds[-4],preds[-3]), targets, epoch_num, step_num)
+                    total_loss_ab, loss_items_ab = self.compute_loss_ab((preds[0],preds[1],preds[2]), targets, epoch_num, step_num)
                 total_loss += total_loss_ab
                 loss_items += loss_items_ab
             else:
@@ -165,8 +171,12 @@ class Trainer:
                 total_loss *= self.world_size
         # backward
         self.scaler.scale(total_loss).backward()
-        self.loss_items = loss_items
-        self.update_optimizer()
+        if state == 'face':
+            self.loss_items = loss_items  # record loss_items for face only
+        if state == 'face':
+            self.update_optimizer(state='face')
+        else:
+            self.update_optimizer()
 
     def eval_and_save(self):
         remaining_epochs = self.max_epoch - self.epoch
@@ -340,7 +350,7 @@ class Trainer:
         if self.device != 'cpu':
             torch.cuda.empty_cache()
 
-    def update_optimizer(self):
+    def update_optimizer(self, state=''):
         curr_step = self.step + self.max_stepnum * self.epoch
         self.accumulate = max(1, round(64 / self.batch_size))
         if curr_step <= self.warmup_stepnum:
@@ -356,7 +366,8 @@ class Trainer:
             self.optimizer.zero_grad()
             if self.ema:
                 self.ema.update(self.model)
-            self.last_opt_step = curr_step
+            if state == 'face':  # state 'face' after 'main' state
+                self.last_opt_step = curr_step
 
     @staticmethod
     def get_data_loader(args, cfg, data_dict, suffix=''):

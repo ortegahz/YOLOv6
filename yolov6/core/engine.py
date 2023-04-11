@@ -7,6 +7,7 @@ from copy import deepcopy
 import os.path as osp
 
 from tqdm import tqdm
+from itertools import cycle
 
 import cv2
 import numpy as np
@@ -120,7 +121,8 @@ class Trainer:
     def train_in_loop(self, epoch_num):
         try:
             self.prepare_for_steps()
-            for self.step, self.batch_data in self.pbar:
+            # for self.step, self.batch_data in self.pbar:
+            for self.step, (self.batch_data, self.batch_data_face) in self.pbar:
                 self.train_in_steps(epoch_num, self.step)
                 self.print_details()
         except Exception as _:
@@ -134,7 +136,7 @@ class Trainer:
 
     # Training loop for batchdata
     def train_in_steps(self, epoch_num, step_num):
-        images, targets = self.prepro_data(self.batch_data, self.device)
+        images, targets = self.prepro_data(self.batch_data_face, self.device)
         # plot train_batch and save to tensorboard once an epoch
         if self.write_trainbatch_tb and self.main_process and self.step == 0:
             self.plot_train_batch(images, targets)
@@ -315,7 +317,8 @@ class Trainer:
         self.optimizer.zero_grad()
 
         LOGGER.info(('\n' + '%10s' * (self.loss_num + 1)) % (*self.loss_info,))
-        self.pbar = enumerate(self.train_loader_face)
+        # self.pbar = enumerate(self.train_loader_face)
+        self.pbar = enumerate(zip(cycle(self.train_loader), self.train_loader_face))
         if self.main_process:
             self.pbar = tqdm(self.pbar, total=self.max_stepnum, ncols=NCOLS, bar_format='{l_bar}{bar:10}{r_bar}{bar:-10b}')
 

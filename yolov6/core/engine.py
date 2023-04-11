@@ -123,7 +123,7 @@ class Trainer:
             self.prepare_for_steps()
             # for self.step, self.batch_data in self.pbar:
             for self.step, (self.batch_data, self.batch_data_face) in self.pbar:
-                self.train_in_steps(epoch_num, self.step)
+                # self.train_in_steps(epoch_num, self.step)
                 self.train_in_steps(epoch_num, self.step, state='face')
                 self.print_details()
         except Exception as _:

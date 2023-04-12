@@ -124,7 +124,7 @@ class Trainer:
             # for self.step, self.batch_data in self.pbar:
             for self.step, (self.batch_data, self.batch_data_face) in self.pbar:
                 self.train_in_steps(epoch_num, self.step)
-                self.train_in_steps(epoch_num, self.step, state='face')
+                # self.train_in_steps(epoch_num, self.step, state='face')
                 self.print_details()
         except Exception as _:
             LOGGER.error('ERROR in training steps.')
@@ -171,12 +171,12 @@ class Trainer:
                 total_loss *= self.world_size
         # backward
         self.scaler.scale(total_loss).backward()
-        if state == 'face':
-            self.loss_items = loss_items  # record loss_items for face only
-        if state == 'face':
-            self.update_optimizer(state='face')
-        else:
-            self.update_optimizer()
+        # if state == 'face':
+        #     self.loss_items = loss_items  # record loss_items for face only
+        self.loss_items = loss_items
+        # if state == 'face':
+        #     self.update_optimizer()
+        self.update_optimizer()
 
     def eval_and_save(self):
         remaining_epochs = self.max_epoch - self.epoch
@@ -350,7 +350,7 @@ class Trainer:
         if self.device != 'cpu':
             torch.cuda.empty_cache()
 
-    def update_optimizer(self, state=''):
+    def update_optimizer(self):
         curr_step = self.step + self.max_stepnum * self.epoch
         self.accumulate = max(1, round(64 / self.batch_size))
         if curr_step <= self.warmup_stepnum:
@@ -360,7 +360,7 @@ class Trainer:
                 param['lr'] = np.interp(curr_step, [0, self.warmup_stepnum], [warmup_bias_lr, param['initial_lr'] * self.lf(self.epoch)])
                 if 'momentum' in param:
                     param['momentum'] = np.interp(curr_step, [0, self.warmup_stepnum], [self.cfg.solver.warmup_momentum, self.cfg.solver.momentum])
-        if curr_step - self.last_opt_step >= self.accumulate and state == 'face':
+        if curr_step - self.last_opt_step >= self.accumulate:
             self.scaler.step(self.optimizer)
             self.scaler.update()
             self.optimizer.zero_grad()

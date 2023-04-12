@@ -1,10 +1,8 @@
 # YOLOv6n-face model
 model = dict(
     type='YOLOv6n',
-    # pretrained='/home/manu/tmp/yolov6n_coco.pt',
-    # pretrained='/media/manu-pc/tmp/yolov6n_coco.pt',
-    pretrained='/media/manu-pc/tmp/yolov6n_face.pt',
-    # pretrained='/home/manu/tmp/yolov6n_face.pt',
+    pretrained='/media/manu-pc/tmp/yolov6n_coco.pt',
+    # pretrained='/media/manu-pc/tmp/yolov6n_face.pt',
     depth_multiple=0.33,
     width_multiple=0.25,
     backbone=dict(

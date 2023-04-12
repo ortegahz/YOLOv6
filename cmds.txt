@@ -18,7 +18,7 @@ screen python -m torch.distributed.launch --nproc_per_node 8 tools/train.py --ba
 
 # test
 python tools/eval.py --data data/scut_wdf.yaml --batch 32 --weights /home/manu/tmp/mp_s480_e50_full/weights/last_ckpt.pt --task val --reproduce_640_eval
-python tools/eval.py --data data/scut_wdf.yaml --batch 32 --weights runs/train//exp7/weights/last_ckpt.pt --task val --reproduce_640_eval
+python tools/eval.py --data data/scut_wdf.yaml --batch 32 --weights runs/train//exp8/weights/last_ckpt.pt --task val --reproduce_640_eval
 
 ==================== ofc_scut_e400 ====================
  Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.481
@@ -93,6 +93,21 @@ python tools/eval.py --data data/scut_wdf.yaml --batch 32 --weights runs/train//
  Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.435
  Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.634
  Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.682
+=================================================
+
+==================== mp_s480_e10w5_full ====================
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.352
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 0.830
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=100 ] = 0.205
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.307
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.466
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.531
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=  1 ] = 0.022
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 10 ] = 0.168
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.456
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.412
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.565
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.635
 =================================================
 
 # evaluation

@@ -13,7 +13,10 @@ python tools/infer.py --weights /home/manu/tmp/exp6/weights/last_ckpt.pt --sourc
 
 [debug] python -m torch.distributed.launch --nproc_per_node 4 tools/train.py --batch 4 --conf configs/yolov6n_finetune.py --data data/WIDER_FACE.yaml --fuse_ab --device 0,1,2,3
 screen python -m torch.distributed.launch --nproc_per_node 8 tools/train.py --batch 64 --conf configs/yolov6n_finetune.py --data data/WIDER_FACE.yaml --fuse_ab --device 0,1,2,3,4,5,6,7 --img-size 480 --epochs 50 --eval-final-only
-screen python -m torch.distributed.launch --nproc_per_node 8 tools/train.py --batch 64 --conf configs/yolov6n_finetune.py --data data/scut_wdf.yaml --fuse_ab --device 0,1,2,3,4,5,6,7 --img-size 480 --epochs 50 --eval-final-only
+screen python -m torch.distributed.launch --nproc_per_node 8 tools/train.py --batch 64 --conf configs/yolov6n_finetune.py --data data/scut_wdf.yaml --fuse_ab --device 0,1,2,3,4,5,6,7 --img-size 480 --epochs 100 --eval-final-only
+
+# test
+python tools/eval.py --data data/scut_wdf.yaml --batch 32 --weights /home/manu/tmp/mp_s480_e50_full/weights/last_ckpt.pt --task val --reproduce_640_eval
 
 # evaluation
 python tools/infer.py --weights /home/manu/tmp/yolov6n_face.pt --source /media/manu/kingstoo/yolov6/WIDER_val/images --yaml data/WIDER_FACE.yaml --conf 0.02 --not-save-img --save-txt-widerface --name widerface_yolov6n
@@ -63,12 +66,17 @@ Medium Val AP: 0.8393172721309866
 Hard   Val AP: 0.7325196772571011
 =================================================
 
+==================== mp_s480_e100_full ====================
+Easy   Val AP: 0.8516010510577791
+Medium Val AP: 0.8400564305743672
+Hard   Val AP: 0.7411516856100399
+=================================================
+
 ==================== mp_s480_e50_face ====================
 Easy   Val AP: 0.9270444669835096
 Medium Val AP: 0.9028770111576119
 Hard   Val AP: 0.779199578789705
 =================================================
-
 
 # tensorboard
 tensorboard --logdir /home/manu/tmp/exp2 --bind_all

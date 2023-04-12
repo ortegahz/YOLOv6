@@ -123,7 +123,7 @@ class Trainer:
             self.prepare_for_steps()
             # for self.step, self.batch_data in self.pbar:
             for self.step, (self.batch_data, self.batch_data_face) in self.pbar:
-                # self.train_in_steps(epoch_num, self.step)
+                self.train_in_steps(epoch_num, self.step)
                 self.train_in_steps(epoch_num, self.step, state='face')
                 self.print_details()
         except Exception as _:
@@ -360,14 +360,13 @@ class Trainer:
                 param['lr'] = np.interp(curr_step, [0, self.warmup_stepnum], [warmup_bias_lr, param['initial_lr'] * self.lf(self.epoch)])
                 if 'momentum' in param:
                     param['momentum'] = np.interp(curr_step, [0, self.warmup_stepnum], [self.cfg.solver.warmup_momentum, self.cfg.solver.momentum])
-        if curr_step - self.last_opt_step >= self.accumulate:
+        if curr_step - self.last_opt_step >= self.accumulate and state == 'face':
             self.scaler.step(self.optimizer)
             self.scaler.update()
             self.optimizer.zero_grad()
             if self.ema:
                 self.ema.update(self.model)
-            if state == 'face':  # state 'face' after 'main' state
-                self.last_opt_step = curr_step
+            self.last_opt_step = curr_step
 
     @staticmethod
     def get_data_loader(args, cfg, data_dict, suffix=''):

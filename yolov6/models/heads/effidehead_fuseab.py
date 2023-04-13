@@ -649,6 +649,20 @@ def DeHead(channels_list, num_anchors, num_classes, reg_max=16, num_layers=3):
             kernel_size=3,
             stride=1
         ),
+        # face_cls_conv0
+        Conv(
+            in_channels=channels_list[chx[-2]],
+            out_channels=channels_list[chx[-2]],
+            kernel_size=3,
+            stride=1
+        ),
+        # face_reg_conv0
+        Conv(
+            in_channels=channels_list[chx[-2]],
+            out_channels=channels_list[chx[-2]],
+            kernel_size=3,
+            stride=1
+        ),
         # cls_pred0_af
         nn.Conv2d(
             in_channels=channels_list[chx[-2]],
@@ -661,6 +675,18 @@ def DeHead(channels_list, num_anchors, num_classes, reg_max=16, num_layers=3):
             out_channels=4 * (reg_max + 1) + 10,
             kernel_size=1
         ),
+        # face_cls_pred0_af
+        nn.Conv2d(
+            in_channels=channels_list[chx[-2]],
+            out_channels=num_classes,
+            kernel_size=1
+        ),
+        # face_reg_pred0_af
+        nn.Conv2d(
+            in_channels=channels_list[chx[-2]],
+            out_channels=4 * (reg_max + 1) + 10,
+            kernel_size=1
+        ),
         # cls_pred0_3ab
         nn.Conv2d(
             in_channels=channels_list[chx[-2]],
@@ -668,6 +694,18 @@ def DeHead(channels_list, num_anchors, num_classes, reg_max=16, num_layers=3):
             kernel_size=1
         ),
         # reg_pred0_3ab
+        nn.Conv2d(
+            in_channels=channels_list[chx[-2]],
+            out_channels=4 * num_anchors,
+            kernel_size=1
+        ),
+        # face_cls_pred0_3ab
+        nn.Conv2d(
+            in_channels=channels_list[chx[-2]],
+            out_channels=num_classes * num_anchors,
+            kernel_size=1
+        ),
+        # face_reg_pred0_3ab
         nn.Conv2d(
             in_channels=channels_list[chx[-2]],
             out_channels=4 * num_anchors,
@@ -694,6 +732,20 @@ def DeHead(channels_list, num_anchors, num_classes, reg_max=16, num_layers=3):
             kernel_size=3,
             stride=1
         ),
+        # face_cls_conv1
+        Conv(
+            in_channels=channels_list[chx[-2]],
+            out_channels=channels_list[chx[-2]],
+            kernel_size=3,
+            stride=1
+        ),
+        # face_reg_conv1
+        Conv(
+            in_channels=channels_list[chx[-2]],
+            out_channels=channels_list[chx[-2]],
+            kernel_size=3,
+            stride=1
+        ),
         # cls_pred1_af
         nn.Conv2d(
             in_channels=channels_list[chx[-2]],
@@ -706,6 +758,18 @@ def DeHead(channels_list, num_anchors, num_classes, reg_max=16, num_layers=3):
             out_channels=4 * (reg_max + 1) + 10,
             kernel_size=1
         ),
+        # face_cls_pred1_af
+        nn.Conv2d(
+            in_channels=channels_list[chx[-2]],
+            out_channels=num_classes,
+            kernel_size=1
+        ),
+        # face_reg_pred1_af
+        nn.Conv2d(
+            in_channels=channels_list[chx[-2]],
+            out_channels=4 * (reg_max + 1) + 10,
+            kernel_size=1
+        ),
         # cls_pred1_3ab
         nn.Conv2d(
             in_channels=channels_list[chx[-2]],
@@ -713,6 +777,18 @@ def DeHead(channels_list, num_anchors, num_classes, reg_max=16, num_layers=3):
             kernel_size=1
         ),
         # reg_pred1_3ab
+        nn.Conv2d(
+            in_channels=channels_list[chx[-2]],
+            out_channels=4 * num_anchors,
+            kernel_size=1
+        ),
+        # face_cls_pred1_3ab
+        nn.Conv2d(
+            in_channels=channels_list[chx[-2]],
+            out_channels=num_classes * num_anchors,
+            kernel_size=1
+        ),
+        # face_reg_pred1_3ab
         nn.Conv2d(
             in_channels=channels_list[chx[-2]],
             out_channels=4 * num_anchors,
@@ -739,6 +815,20 @@ def DeHead(channels_list, num_anchors, num_classes, reg_max=16, num_layers=3):
             kernel_size=3,
             stride=1
         ),
+        # face_cls_conv2
+        Conv(
+            in_channels=channels_list[chx[-2]],
+            out_channels=channels_list[chx[-2]],
+            kernel_size=3,
+            stride=1
+        ),
+        # face_reg_conv2
+        Conv(
+            in_channels=channels_list[chx[-2]],
+            out_channels=channels_list[chx[-2]],
+            kernel_size=3,
+            stride=1
+        ),
         # cls_pred2_af
         nn.Conv2d(
             in_channels=channels_list[chx[-2]],
@@ -751,6 +841,18 @@ def DeHead(channels_list, num_anchors, num_classes, reg_max=16, num_layers=3):
             out_channels=4 * (reg_max + 1) + 10,
             kernel_size=1
         ),
+        # face_cls_pred2_af
+        nn.Conv2d(
+            in_channels=channels_list[chx[-2]],
+            out_channels=num_classes,
+            kernel_size=1
+        ),
+        # face_reg_pred2_af
+        nn.Conv2d(
+            in_channels=channels_list[chx[-2]],
+            out_channels=4 * (reg_max + 1) + 10,
+            kernel_size=1
+        ),
         # cls_pred2_3ab
         nn.Conv2d(
             in_channels=channels_list[chx[-2]],
@@ -758,6 +860,18 @@ def DeHead(channels_list, num_anchors, num_classes, reg_max=16, num_layers=3):
             kernel_size=1
         ),
         # reg_pred2_3ab
+        nn.Conv2d(
+            in_channels=channels_list[chx[-2]],
+            out_channels=4 * num_anchors,
+            kernel_size=1
+        ),
+        # face_cls_pred2_3ab
+        nn.Conv2d(
+            in_channels=channels_list[chx[-2]],
+            out_channels=num_classes * num_anchors,
+            kernel_size=1
+        ),
+        # face_reg_pred2_3ab
         nn.Conv2d(
             in_channels=channels_list[chx[-2]],
             out_channels=4 * num_anchors,

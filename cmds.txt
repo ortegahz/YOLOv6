@@ -17,11 +17,12 @@ screen python -m torch.distributed.launch --nproc_per_node 8 tools/train.py --ba
 screen python -m torch.distributed.launch --nproc_per_node 8 tools/train.py --batch 64 --conf configs/yolov6n_finetune.py --data data/scut_wdf.yaml --fuse_ab --device 0,1,2,3,4,5,6,7 --img-size 480 --epochs 10 --stop_aug_last_n_epoch 5 --heavy-eval-range 10
 python -m torch.distributed.launch --nproc_per_node 8 tools/train.py --batch 64 --conf configs/yolov6n_finetune.py --data data/scut_wdf.yaml --fuse_ab --device 0,1,2,3,4,5,6,7 --img-size 480 --epochs 50 --stop_aug_last_n_epoch 5 --heavy-eval-range 50
 python -m torch.distributed.launch --nproc_per_node 8 tools/train.py --batch 64 --conf configs/yolov6n_finetune.py --data data/scut_wdf.yaml --fuse_ab --device 0,1,2,3,4,5,6,7 --img-size 480 --epochs 10 --stop_aug_last_n_epoch 5 --heavy-eval-range 10
+python -m torch.distributed.launch --nproc_per_node 8 tools/train.py --batch 64 --conf configs/yolov6s_finetune.py --data data/scut_wdf.yaml --fuse_ab --device 0,1,2,3,4,5,6,7 --img-size 480 --epochs 10 --stop_aug_last_n_epoch 5 --heavy-eval-range 10
 
 # test
 python tools/eval.py --data data/scut_wdf.yaml --batch 32 --weights /media/manu-pc/tmp/mp_s480_e10w5/weights/last_ckpt.pt --task val --reproduce_640_eval
 python tools/eval.py --data data/scut_wdf.yaml --batch 32 --weights runs/train/exp11/weights/last_ckpt.pt --task val --reproduce_640_eval
-python tools/eval.py --data data/scut_wdf.yaml --batch 32 --weights runs/train/exp21/weights/best_ckpt.pt --task val --reproduce_640_eval
+python tools/eval.py --data data/scut_wdf.yaml --batch 32 --weights runs/train/exp26/weights/best_ckpt.pt --task val --reproduce_640_eval
 
 # evaluation
 python tools/infer.py --weights /home/manu/tmp/yolov6n_face.pt --source /media/manu/kingstoo/yolov6/WIDER_val/images --yaml data/WIDER_FACE.yaml --conf 0.02 --not-save-img --save-txt-widerface --name widerface_yolov6n

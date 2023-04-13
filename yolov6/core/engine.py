@@ -124,7 +124,7 @@ class Trainer:
             # for self.step, self.batch_data in self.pbar:
             for self.step, (self.batch_data, self.batch_data_face) in self.pbar:
                 self.train_in_steps(epoch_num, self.step)
-                self.train_in_steps(epoch_num, self.step, state='face')
+                # self.train_in_steps(epoch_num, self.step, state='face')
                 self.print_details()
         except Exception as _:
             LOGGER.error('ERROR in training steps.')
@@ -174,9 +174,9 @@ class Trainer:
         if state == '':
             self.loss_items = loss_items
         # self.loss_items = loss_items
-        if state == 'face':
-            self.update_optimizer()
-        # self.update_optimizer()
+        # if state == 'face':
+        #     self.update_optimizer()
+        self.update_optimizer()
 
     def eval_and_save(self):
         remaining_epochs = self.max_epoch - self.epoch

@@ -1,10 +1,12 @@
 # YOLOv6n-face model
 model = dict(
     type='YOLOv6n',
-    # pretrained='/home/manu/tmp/yolov6n_coco.pt',
-    pretrained='/media/manu-pc/tmp/yolov6n_coco.pt',
-    depth_multiple=0.33,
-    width_multiple=0.25,
+    # pretrained='/media/manu-pc/tmp/yolov6n_coco.pt',
+    pretrained=None,
+    # depth_multiple=0.33,
+    # width_multiple=0.25,
+    depth_multiple=0.70,
+    width_multiple=0.50,
     backbone=dict(
         type='EfficientRep',
         num_repeats=[1, 6, 12, 18, 6],
@@ -39,28 +41,54 @@ model = dict(
     )
 )
 
+# solver = dict(
+#     optim='SGD',
+#     lr_scheduler='Cosine',
+#     lr0=0.0032,
+#     lrf=0.12,
+#     momentum=0.843,
+#     weight_decay=0.00036,
+#     warmup_epochs=2.0,
+#     warmup_momentum=0.5,
+#     warmup_bias_lr=0.05
+# )
+#
+# data_aug = dict(
+#     hsv_h=0.0138,
+#     hsv_s=0.664,
+#     hsv_v=0.464,
+#     degrees=0.373,
+#     translate=0.245,
+#     scale=0.898,
+#     shear=0.602,
+#     flipud=0.00856,
+#     fliplr=0.5,
+#     mosaic=1.0,
+#     mixup=0.243,
+# )
+
 solver = dict(
     optim='SGD',
     lr_scheduler='Cosine',
-    lr0=0.0032,
-    lrf=0.12,
-    momentum=0.843,
-    weight_decay=0.00036,
-    warmup_epochs=2.0,
-    warmup_momentum=0.5,
-    warmup_bias_lr=0.05
+    lr0=0.02, #0.01 # 0.02
+    lrf=0.01,
+    momentum=0.937,
+    weight_decay=0.0005,
+    warmup_epochs=3.0,
+    warmup_momentum=0.8,
+    warmup_bias_lr=0.1
 )
 
 data_aug = dict(
-    hsv_h=0.0138,
-    hsv_s=0.664,
-    hsv_v=0.464,
-    degrees=0.373,
-    translate=0.245,
-    scale=0.898,
-    shear=0.602,
-    flipud=0.00856,
+    hsv_h=0.015,
+    hsv_s=0.7,
+    hsv_v=0.4,
+    degrees=0.0,
+    translate=0.1,
+    scale=0.5,
+    shear=0.0,
+    flipud=0.0,
     fliplr=0.5,
     mosaic=1.0,
-    mixup=0.243,
+    mixup=0.0,
 )

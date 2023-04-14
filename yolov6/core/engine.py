@@ -124,7 +124,7 @@ class Trainer:
             # for self.step, self.batch_data in self.pbar:
             for self.step, (self.batch_data, self.batch_data_face) in self.pbar:
                 self.train_in_steps(epoch_num, self.step)
-                # self.train_in_steps(epoch_num, self.step, state='face')
+                self.train_in_steps(epoch_num, self.step, state='face')
                 self.print_details()
         except Exception as _:
             LOGGER.error('ERROR in training steps.')
@@ -159,12 +159,15 @@ class Trainer:
             elif self.args.fuse_ab:
                 if state == 'face':
                     total_loss, loss_items = self.compute_loss((preds[0],preds[-2],preds[-1]), targets, epoch_num, step_num)
-                    total_loss_ab, loss_items_ab = self.compute_loss_ab((preds[0],preds[3],preds[4]), targets, epoch_num, step_num)
+                    # total_loss_ab, loss_items_ab = self.compute_loss_ab((preds[0],preds[3],preds[4]), targets, epoch_num, step_num)
+                    # total_loss += total_loss_ab
+                    # loss_items += loss_items_ab
+                    # total_loss *= 0.
                 else:
                     total_loss, loss_items = self.compute_loss((preds[0],preds[-4],preds[-3]), targets, epoch_num, step_num)
                     total_loss_ab, loss_items_ab = self.compute_loss_ab((preds[0],preds[1],preds[2]), targets, epoch_num, step_num)
-                total_loss += total_loss_ab
-                loss_items += loss_items_ab
+                    total_loss += total_loss_ab
+                    loss_items += loss_items_ab
             else:
                 total_loss, loss_items = self.compute_loss(preds, targets, epoch_num, step_num) # YOLOv6_af
             if self.rank != -1:

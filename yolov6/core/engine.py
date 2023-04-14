@@ -124,7 +124,7 @@ class Trainer:
             # for self.step, self.batch_data in self.pbar:
             for self.step, (self.batch_data, self.batch_data_face) in self.pbar:
                 self.train_in_steps(epoch_num, self.step)
-                self.train_in_steps(epoch_num, self.step, state='face')
+                # self.train_in_steps(epoch_num, self.step, state='face')
                 self.print_details()
         except Exception as _:
             LOGGER.error('ERROR in training steps.')
@@ -158,7 +158,7 @@ class Trainer:
             
             elif self.args.fuse_ab:
                 if state == 'face':
-                    total_loss, loss_items = self.compute_loss((preds[0],preds[-2],preds[-1]), targets, epoch_num, step_num)
+                    total_loss, loss_items = self.compute_loss_face((preds[0],preds[-2],preds[-1]), targets, epoch_num, step_num)
                     # total_loss_ab, loss_items_ab = self.compute_loss_ab((preds[0],preds[3],preds[4]), targets, epoch_num, step_num)
                     # total_loss += total_loss_ab
                     # loss_items += loss_items_ab
@@ -287,6 +287,22 @@ class Trainer:
                                         iou_type=self.cfg.model.head.iou_type,
 										fpn_strides=self.cfg.model.head.strides)
 
+        self.compute_loss_face = ComputeLoss(num_classes=self.data_dict['nc'],
+                                        ori_img_size=self.img_size,
+                                        warmup_epoch=self.cfg.model.head.atss_warmup_epoch,
+                                        use_dfl=self.cfg.model.head.use_dfl,
+                                        reg_max=self.cfg.model.head.reg_max,
+                                        iou_type=self.cfg.model.head.iou_type,
+                                        fpn_strides=self.cfg.model.head.strides,
+                                        # loss_weight={
+                                        #      'class': 0.0,
+                                        #      'iou': 0.0,
+                                        #      'dfl': 0.0,
+                                        #      'repgt': 0.0,
+                                        #      'repbox': 0.0,
+                                        #      'landmark': 0.5}
+                                             )
+
         if self.args.fuse_ab:
             self.compute_loss_ab = ComputeLoss_ab(num_classes=self.data_dict['nc'],
                                         ori_img_size=self.img_size,
@@ -331,9 +347,12 @@ class Trainer:
 
         LOGGER.info(('\n' + '%10s' * (self.loss_num + 1)) % (*self.loss_info,))
         # self.pbar = enumerate(self.train_loader_face)
-        self.pbar = enumerate(zip(cycle(self.train_loader), self.train_loader_face))
+        # self.pbar = enumerate(zip(cycle(self.train_loader), self.train_loader_face))
+        self.pbar = enumerate(zip(self.train_loader, self.train_loader_face))
         if self.main_process:
-            self.pbar = tqdm(self.pbar, total=self.max_stepnum, ncols=NCOLS, bar_format='{l_bar}{bar:10}{r_bar}{bar:-10b}')
+            # self.pbar = tqdm(self.pbar, total=self.max_stepnum, ncols=NCOLS, bar_format='{l_bar}{bar:10}{r_bar}{bar:-10b}')
+            self.pbar = tqdm(self.pbar, total=len(self.train_loader), ncols=NCOLS,
+                             bar_format='{l_bar}{bar:10}{r_bar}{bar:-10b}')
 
     # Print loss after each steps
     def print_details(self):

@@ -124,7 +124,7 @@ class Trainer:
             # for self.step, self.batch_data in self.pbar:
             for self.step, (self.batch_data, self.batch_data_face) in self.pbar:
                 self.train_in_steps(epoch_num, self.step)
-                # self.train_in_steps(epoch_num, self.step, state='face')
+                self.train_in_steps(epoch_num, self.step, state='face')
                 self.print_details()
         except Exception as _:
             LOGGER.error('ERROR in training steps.')
@@ -294,13 +294,13 @@ class Trainer:
                                         reg_max=self.cfg.model.head.reg_max,
                                         iou_type=self.cfg.model.head.iou_type,
                                         fpn_strides=self.cfg.model.head.strides,
-                                        # loss_weight={
-                                        #      'class': 0.0,
-                                        #      'iou': 0.0,
-                                        #      'dfl': 0.0,
-                                        #      'repgt': 0.0,
-                                        #      'repbox': 0.0,
-                                        #      'landmark': 0.5}
+                                        loss_weight={
+                                             'class': 0.0,
+                                             'iou': 0.0,
+                                             'dfl': 0.0,
+                                             'repgt': 0.0,
+                                             'repbox': 0.0,
+                                             'landmark': 0.5}
                                              )
 
         if self.args.fuse_ab:

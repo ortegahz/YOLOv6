@@ -7,6 +7,7 @@ python tools/infer.py --weights /home/manu/tmp/yolov6n_face.pt --source /media/m
 python tools/infer.py --weights /home/manu/tmp/yolov6n_face.pt --source /media/manu/kingstoo/widerface/data/retinaface/train/images/scut/PartA_00033.jpg --yaml data/WIDER_FACE.yaml --conf 0.2 --name scut
 python tools/infer.py --weights /home/manu/tmp/yolov6n_face.pt --source /media/manu/samsung/pics/students.bmp --yaml data/WIDER_FACE.yaml --conf 0.4 --name scut
 python tools/infer.py --weights /home/manu/tmp/exp6/weights/last_ckpt.pt --source /media/manu/samsung/pics/students.bmp --yaml data/WIDER_FACE.yaml --conf 0.4 --name scut
+python tools/infer.py --weights /home/manu/tmp/mp_s480_e10w5_full_woab/weights/best_ckpt.pt --source /media/manu/samsung/pics/sylgd.png --yaml data/WIDER_FACE.yaml --conf 0.4 --name scut --img-size 1280 1280
 
 # train
 [official] python -m torch.distributed.launch --nproc_per_node 8 tools/train.py --batch 64 --conf configs/yolov6s_finetune.py --data data/WIDER_FACE.yaml --fuse_ab --device 0,1,2,3,4,5,6,7
@@ -29,7 +30,7 @@ python tools/eval.py --data data/scut_wdf.yaml --batch 32 --weights runs/train/e
 
 # evaluation
 python tools/infer.py --weights /home/manu/tmp/yolov6n_face.pt --source /media/manu/kingstoo/yolov6/WIDER_val/images --yaml data/WIDER_FACE.yaml --conf 0.02 --not-save-img --save-txt-widerface --name widerface_yolov6n
-python tools/infer.py --weights /home/manu/tmp/exp/weights/last_ckpt.pt --source /media/manu/kingstoo/yolov6/WIDER_val/images --yaml data/WIDER_FACE.yaml --conf 0.02 --not-save-img --save-txt-widerface --name widerface_yolov6n
+python tools/infer.py --weights /home/manu/tmp/mp_s480_e10w5_full_woab/weights/best_ckpt.pt --source /media/manu/kingstoo/yolov6/WIDER_val/images --yaml data/WIDER_FACE.yaml --conf 0.02 --not-save-img --save-txt-widerface --name widerface_yolov6n
 
 python evaluation.py --pred ../runs/inference/widerface_yolov6n/labels/images/
 

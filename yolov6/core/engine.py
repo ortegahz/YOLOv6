@@ -124,7 +124,7 @@ class Trainer:
             # for self.step, self.batch_data in self.pbar:
             for self.step, (self.batch_data, self.batch_data_face) in self.pbar:
                 self.train_in_steps(epoch_num, self.step)
-                self.train_in_steps(epoch_num, self.step, state='face')
+                # self.train_in_steps(epoch_num, self.step, state='face')
                 self.print_details()
         except Exception as _:
             LOGGER.error('ERROR in training steps.')
@@ -331,9 +331,12 @@ class Trainer:
 
         LOGGER.info(('\n' + '%10s' * (self.loss_num + 1)) % (*self.loss_info,))
         # self.pbar = enumerate(self.train_loader_face)
-        self.pbar = enumerate(zip(cycle(self.train_loader), self.train_loader_face))
+        # self.pbar = enumerate(zip(cycle(self.train_loader), self.train_loader_face))
+        self.pbar = enumerate(zip(self.train_loader, self.train_loader_face))
         if self.main_process:
-            self.pbar = tqdm(self.pbar, total=self.max_stepnum, ncols=NCOLS, bar_format='{l_bar}{bar:10}{r_bar}{bar:-10b}')
+            # self.pbar = tqdm(self.pbar, total=self.max_stepnum, ncols=NCOLS, bar_format='{l_bar}{bar:10}{r_bar}{bar:-10b}')
+            self.pbar = tqdm(self.pbar, total=len(self.train_loader), ncols=NCOLS,
+                             bar_format='{l_bar}{bar:10}{r_bar}{bar:-10b}')
 
     # Print loss after each steps
     def print_details(self):

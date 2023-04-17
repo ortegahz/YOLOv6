@@ -108,6 +108,21 @@ scut
  Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.690
 =================================================
 
+==================== mpa_s480_e10w5_nc_ff_nab_ia ====================
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.405
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 0.857
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=100 ] = 0.314
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.339
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.548
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.624
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=  1 ] = 0.024
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 10 ] = 0.186
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.482
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.430
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.615
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.686
+=================================================
+
 ==================== mpa_s480_e20w5_nc_ff_nab ====================
  Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.422
  Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 0.873
@@ -356,4 +371,10 @@ Hard   Val AP: 0.779199578789705
 Easy   Val AP: 0.9356593027906223
 Medium Val AP: 0.9049616312548393
 Hard   Val AP: 0.74175791932859
+=================================================
+
+==================== mpa_s480_e10w5_nc_ff_nab_ia - ap0.405 ====================
+Easy   Val AP: 0.9354269202918752
+Medium Val AP: 0.9051759720950143
+Hard   Val AP: 0.75708574588248
 =================================================

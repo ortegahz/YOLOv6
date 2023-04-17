@@ -293,12 +293,12 @@ class Detect(nn.Module):
 
             return torch.cat(
                 [
-                    # pred_bboxes,
-                    face_pred_bboxes,
+                    pred_bboxes,
+                    # face_pred_bboxes,
                     ldmk1, ldmk2, ldmk3, ldmk4, ldmk5, 
                     torch.ones((b, pred_bboxes.shape[1], 1), device=pred_bboxes.device, dtype=pred_bboxes.dtype),
-                    # cls_score_list
-                    face_cls_score_list
+                    cls_score_list
+                    # face_cls_score_list
                 ],
                 axis=-1)
 

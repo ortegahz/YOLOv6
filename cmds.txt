@@ -24,15 +24,15 @@ screen python -m torch.distributed.launch --nproc_per_node 8 tools/train.py --ba
 # test
 python tools/eval.py --data data/scut_wdf.yaml --batch 32 --weights /media/manu-pc/tmp/mp_s480_e10w5/weights/last_ckpt.pt --task val --reproduce_640_eval
 python tools/eval.py --data data/scut_wdf.yaml --batch 32 --weights runs/train/exp11/weights/last_ckpt.pt --task val --reproduce_640_eval
-python tools/eval.py --data data/scut_wdf.yaml --batch 32 --weights runs/train/exp14/weights/best_ckpt.pt --task val --reproduce_640_eval
+python tools/eval.py --data data/scut_wdf.yaml --batch 32 --weights runs/train/exp15/weights/best_ckpt.pt --task val --reproduce_640_eval
 
 # evaluation
 python tools/infer.py --weights /home/manu/tmp/yolov6n_face.pt --source /media/manu/kingstoo/yolov6/WIDER_val/images --yaml data/WIDER_FACE.yaml --conf 0.02 --not-save-img --save-txt-widerface --name widerface_yolov6n
-python tools/infer.py --weights /home/manu/tmp/exp/weights/last_ckpt.pt --source /media/manu/kingstoo/yolov6/WIDER_val/images --yaml data/WIDER_FACE.yaml --conf 0.02 --not-save-img --save-txt-widerface --name widerface_yolov6n
+python tools/infer.py --weights /home/manu/tmp/exp15/weights/best_ckpt.pt --source /media/manu/kingstoo/yolov6/WIDER_val/images --yaml data/WIDER_FACE.yaml --conf 0.02 --not-save-img --save-txt-widerface --name widerface_yolov6n
 
 python evaluation.py --pred ../runs/inference/widerface_yolov6n/labels/images/
 
 # tensorboard
-tensorboard --logdir /home/manu/tmp/exp32 --bind_all
+tensorboard --logdir /home/manu/tmp/mpa_s480_e10w5_nc --bind_all
 tensorboard --logdir runs/train/exp28 --bind_all
 http://192.168.3.10:6006/

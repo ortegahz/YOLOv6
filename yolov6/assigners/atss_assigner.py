@@ -20,6 +20,7 @@ class ATSSAssigner(nn.Module):
                 n_level_bboxes,
                 gt_labels,
                 gt_bboxes,
+                gt_kps,
                 mask_gt,
                 pd_bboxes):
         r"""This code is based on
@@ -30,11 +31,13 @@ class ATSSAssigner(nn.Module):
             n_level_bboxes (List):len(3)
             gt_labels (Tensor): shape(bs, n_max_boxes, 1)
             gt_bboxes (Tensor): shape(bs, n_max_boxes, 4)
+            gt_kps (Tensor): shape(bs, n_max_boxes, 15)
             mask_gt (Tensor): shape(bs, n_max_boxes, 1)
             pd_bboxes (Tensor): shape(bs, n_max_boxes, 4)
         Returns:
             target_labels (Tensor): shape(bs, num_total_anchors)
             target_bboxes (Tensor): shape(bs, num_total_anchors, 4)
+            target_kps (Tensor): shape(bs, num_total_anchors, 15)
             target_scores (Tensor): shape(bs, num_total_anchors, num_classes)
             fg_mask (Tensor): shape(bs, num_total_anchors)
         """
@@ -46,6 +49,7 @@ class ATSSAssigner(nn.Module):
             device = gt_bboxes.device
             return torch.full( [self.bs, self.n_anchors], self.bg_idx).to(device), \
                    torch.zeros([self.bs, self.n_anchors, 4]).to(device), \
+                   torch.ones([self.bs, self.n_anchors, 15]).to(device) * -1.0, \
                    torch.zeros([self.bs, self.n_anchors, self.num_classes]).to(device), \
                    torch.zeros([self.bs, self.n_anchors]).to(device)
 
@@ -56,9 +60,13 @@ class ATSSAssigner(nn.Module):
         distances, ac_points = dist_calculator(gt_bboxes.reshape([-1, 4]), anc_bboxes)
         distances = distances.reshape([self.bs, -1, self.n_anchors])
 
+        # is_in_candidate --> bs * n_max_boxes * num_total_anchors
+        # candidate_idxs --> bs * n_max_boxes * (3 * topk)
         is_in_candidate, candidate_idxs = self.select_topk_candidates(
             distances, n_level_bboxes, mask_gt)
 
+        # overlaps_thr_per_gt --> bs * n_max_boxes * 1
+        # iou_candidates --> bs * n_max_boxes * num_total_anchors
         overlaps_thr_per_gt, iou_candidates = self.thres_calculator(
             is_in_candidate, candidate_idxs, overlaps)
 
@@ -67,6 +75,7 @@ class ATSSAssigner(nn.Module):
             iou_candidates > overlaps_thr_per_gt.repeat([1, 1, self.n_anchors]),
             is_in_candidate, torch.zeros_like(is_in_candidate))
 
+        # mask_pos --> bs * n_max_boxes * num_total_anchors
         is_in_gts = select_candidates_in_gts(ac_points, gt_bboxes)
         mask_pos = is_pos * is_in_gts * mask_gt
 
@@ -74,8 +83,8 @@ class ATSSAssigner(nn.Module):
             mask_pos, overlaps, self.n_max_boxes)
 
         # assigned target
-        target_labels, target_bboxes, target_scores = self.get_targets(
-            gt_labels, gt_bboxes, target_gt_idx, fg_mask)
+        target_labels, target_bboxes, target_kps, target_scores = self.get_targets(
+            gt_labels, gt_bboxes, gt_kps, target_gt_idx, fg_mask)
 
         # soft label with iou
         if pd_bboxes is not None:
@@ -83,7 +92,7 @@ class ATSSAssigner(nn.Module):
             ious = ious.max(axis=-2)[0].unsqueeze(-1)
             target_scores *= ious
 
-        return target_labels.long(), target_bboxes, target_scores, fg_mask.bool()
+        return target_labels.long(), target_bboxes, target_kps, target_scores, fg_mask.bool()
 
     def select_topk_candidates(self,
                                distances,
@@ -122,7 +131,7 @@ class ATSSAssigner(nn.Module):
         n_bs_max_boxes = self.bs * self.n_max_boxes
         _candidate_overlaps = torch.where(is_in_candidate > 0,
             overlaps, torch.zeros_like(overlaps))
-        candidate_idxs = candidate_idxs.reshape([n_bs_max_boxes, -1])  # n_bs_max_boxes x 27
+        candidate_idxs = candidate_idxs.reshape([n_bs_max_boxes, -1])  # n_bs_max_boxes x 3topk
         assist_idxs = self.n_anchors * torch.arange(n_bs_max_boxes, device=candidate_idxs.device)
         assist_idxs = assist_idxs[:,None]
         faltten_idxs = candidate_idxs + assist_idxs
@@ -138,6 +147,7 @@ class ATSSAssigner(nn.Module):
     def get_targets(self,
                     gt_labels,
                     gt_bboxes,
+                    gt_kps,
                     target_gt_idx,
                     fg_mask):
 
@@ -154,8 +164,12 @@ class ATSSAssigner(nn.Module):
         target_bboxes = gt_bboxes.reshape([-1, 4])[target_gt_idx.flatten()]
         target_bboxes = target_bboxes.reshape([self.bs, self.n_anchors, 4])
 
+        # assigned target kps
+        target_kps = gt_kps.reshape([-1, 15])[target_gt_idx.flatten()]
+        target_kps = target_kps.reshape([self.bs, self.n_anchors, 15])
+
         # assigned target scores
         target_scores = F.one_hot(target_labels.long(), self.num_classes + 1).float()
         target_scores = target_scores[:, :, :self.num_classes]
 
-        return target_labels, target_bboxes, target_scores
+        return target_labels, target_bboxes, target_kps, target_scores

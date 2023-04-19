@@ -68,7 +68,9 @@ def get_optimizer_param(args, cfg, model):
     cfg.solver.weight_decay *= args.batch_size * accumulate / 64
 
     g_bnw, g_w, g_b = [], [], []
-    for v in model.modules():
+    for v, vn in zip(model.modules(), model.named_modules()):
+        # if 'kps' not in vn[0]:
+        #     continue
         if hasattr(v, 'bias') and isinstance(v.bias, nn.Parameter):
             g_b.append(v.bias)
         if isinstance(v, nn.BatchNorm2d):

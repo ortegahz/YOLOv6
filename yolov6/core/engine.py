@@ -85,8 +85,8 @@ class Trainer:
         self.color = [tuple(np.random.choice(range(256), size=3)) for _ in range(self.model.nc)]
 
 
-        self.loss_num = 3
-        self.loss_info = ['Epoch', 'iou_loss', 'dfl_loss', 'cls_loss']
+        self.loss_num = 4
+        self.loss_info = ['Epoch', 'kps_loss', 'iou_loss', 'dfl_loss', 'cls_loss']
         if self.args.distill:
             self.loss_num += 1
             self.loss_info += ['cwd_loss']
@@ -139,13 +139,16 @@ class Trainer:
                 total_loss, loss_items = self.compute_loss_distill(preds, t_preds, s_featmaps, t_featmaps, targets, \
                                                                    epoch_num, self.max_epoch, temperature, step_num)
             else:
-                total_loss, loss_items = self.compute_loss(preds, targets, epoch_num, step_num)
+                total_loss, loss_items = self.compute_loss(preds, targets, epoch_num, step_num, images,
+                                                           debug=(self.main_process and self.step == 0))
             if self.rank != -1:
                 total_loss *= self.world_size
         # backward
         self.scaler.scale(total_loss).backward()
         self.loss_items = loss_items
         self.update_optimizer()
+        # lrs = [x['lr'] for x in self.optimizer.param_groups]
+        # print(lrs)
 
     def eval_and_save(self):
         remaining_epochs = self.max_epoch - self.epoch
@@ -179,11 +182,11 @@ class Trainer:
 
             del ckpt
             # log for learning rate
-            lr = [x['lr'] for x in self.optimizer.param_groups]
-            self.evaluate_results = list(self.evaluate_results) + lr
+            lrs = [x['lr'] for x in self.optimizer.param_groups]
+            self.evaluate_results = list(self.evaluate_results)
 
             # log for tensorboard
-            write_tblog(self.tblogger, self.epoch, self.evaluate_results, self.mean_loss)
+            write_tblog(self.tblogger, self.epoch, self.evaluate_results, self.mean_loss, lrs)
             # save validation predictions to tensorboard
             write_tbimg(self.tblogger, self.vis_imgs_list, self.epoch, type='val')
 
@@ -440,18 +443,27 @@ class Trainer:
             if len(targets) > 0:
                 ti = targets[targets[:, 0] == i]  # image targets
                 boxes = xywh2xyxy(ti[:, 2:6]).T
+                kpss = ti[:, 6:]
                 classes = ti[:, 1].astype('int')
-                labels = ti.shape[1] == 6  # labels if no conf column
+                # labels = ti.shape[1] == 6  # labels if no conf column
+                labels = True
                 if boxes.shape[1]:
                     if boxes.max() <= 1.01:  # if normalized with tolerance 0.01
                         boxes[[0, 2]] *= w  # scale to pixels
                         boxes[[1, 3]] *= h
+                        kpss[:, 0::3] *= w
+                        kpss[:, 1::3] *= h
                     elif scale < 1:  # absolute coords need scale if image scales
                         boxes *= scale
+                        kpss[:, 0::3] *= scale
+                        kpss[:, 1::3] *= scale
                 boxes[[0, 2]] += x
                 boxes[[1, 3]] += y
+                kpss[:, 0::3] += x
+                kpss[:, 1::3] += y
                 for j, box in enumerate(boxes.T.tolist()):
                     box = [int(k) for k in box]
+                    kps = kpss[j]
                     cls = classes[j]
                     color = tuple([int(x) for x in self.color[cls]])
                     cls = self.data_dict['names'][cls] if self.data_dict['names'] else cls
@@ -459,7 +471,16 @@ class Trainer:
                         label = f'{cls}'
                         cv2.rectangle(mosaic, (box[0], box[1]), (box[2], box[3]), color, thickness=1)
                         cv2.putText(mosaic, label, (box[0], box[1] - 5), cv2.FONT_HERSHEY_COMPLEX, 0.5, color, thickness=1)
+                        color = [(255, 0, 0), (0, 0, 255), (0, 255, 0), (255, 0, 128), (128, 0, 255)]
+                        kps_x, kps_y, kps_z = kps[::3], kps[1::3], kps[2::3]
+                        for k, (kp_x, kp_y, kp_z) in enumerate(zip(kps_x, kps_y, kps_z)):
+                            color_pick = color[k]
+                            if kp_x == -1 or kp_y == -1 or kp_z == -1:
+                                continue
+                            cv2.circle(mosaic, (int(kp_x), int(kp_y)), 1, color_pick, thickness=1)
         self.vis_train_batch = mosaic.copy()
+        mosaic_save = cv2.cvtColor(mosaic, cv2.COLOR_RGB2BGR)
+        cv2.imwrite('/home/manu/tmp/yolov6_train_debug/mosaic.bmp', mosaic_save)
 
     def plot_val_pred(self, vis_outputs, vis_paths, vis_conf=0.3, vis_max_box_num=5):
         # plot validation predictions

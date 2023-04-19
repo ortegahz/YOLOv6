@@ -94,7 +94,12 @@ class Inferer:
 
             if len(det):
                 det[:, :4] = self.rescale(img.shape[2:], det[:, :4], img_src.shape).round()
-                for *xyxy, conf, cls in reversed(det):
+                # for *xyxy, conf, cls in reversed(det):
+                for item in reversed(det):
+                    xyxy = item[:4]
+                    conf = item[4]
+                    kps = item[-11:-1]
+                    cls = item[-1]
                     if save_txt:  # Write to file
                         xywh = (self.box_convert(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
                         line = (cls, *xywh, conf)
@@ -105,7 +110,7 @@ class Inferer:
                         class_num = int(cls)  # integer class
                         label = None if hide_labels else (self.class_names[class_num] if hide_conf else f'{self.class_names[class_num]} {conf:.2f}')
 
-                        self.plot_box_and_label(img_ori, max(round(sum(img_ori.shape) / 2 * 0.003), 2), xyxy, label, color=self.generate_colors(class_num, True))
+                        self.plot_box_and_label(img_ori, max(round(sum(img_ori.shape) / 2 * 0.003), 2), xyxy, kps, label, color=self.generate_colors(class_num, True))
 
                 img_src = np.asarray(img_ori)
 
@@ -230,10 +235,17 @@ class Inferer:
         return text_size
 
     @staticmethod
-    def plot_box_and_label(image, lw, box, label='', color=(128, 128, 128), txt_color=(255, 255, 255), font=cv2.FONT_HERSHEY_COMPLEX):
+    def plot_box_and_label(image, lw, box, kps, label='', color=(128, 128, 128), txt_color=(255, 255, 255), font=cv2.FONT_HERSHEY_COMPLEX):
         # Add one xyxy box to image with label
         p1, p2 = (int(box[0]), int(box[1])), (int(box[2]), int(box[3]))
         cv2.rectangle(image, p1, p2, color, thickness=lw, lineType=cv2.LINE_AA)
+        if len(kps) == 2 * 5:
+            kps_x, kps_y = kps[0::2], kps[1::2]
+            for kp_x, kp_y in zip(kps_x, kps_y):
+                if kp_x < 0 or kp_y < 0:
+                    continue
+                cv2.circle(image, (int(kp_x), int(kp_y)), 1, (255, 0, 0), 1)
+
         if label:
             tf = max(lw - 1, 1)  # font thickness
             w, h = cv2.getTextSize(label, 0, fontScale=lw / 3, thickness=tf)[0]  # text width, height

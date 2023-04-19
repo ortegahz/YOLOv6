@@ -38,17 +38,21 @@ class Detect(nn.Module):
         self.stems = nn.ModuleList()
         self.cls_convs = nn.ModuleList()
         self.reg_convs = nn.ModuleList()
+        self.kps_convs = nn.ModuleList()
         self.cls_preds = nn.ModuleList()
         self.reg_preds = nn.ModuleList()
+        self.kps_preds = nn.ModuleList()
 
         # Efficient decoupled head layers
         for i in range(num_layers):
-            idx = i*5
+            idx = i * 7
             self.stems.append(head_layers[idx])
             self.cls_convs.append(head_layers[idx+1])
             self.reg_convs.append(head_layers[idx+2])
-            self.cls_preds.append(head_layers[idx+3])
-            self.reg_preds.append(head_layers[idx+4])
+            self.kps_convs.append(head_layers[idx+3])
+            self.cls_preds.append(head_layers[idx+4])
+            self.reg_preds.append(head_layers[idx+5])
+            self.kps_preds.append(head_layers[idx+6])
 
     def initialize_biases(self):
 
@@ -68,6 +72,16 @@ class Detect(nn.Module):
             w.data.fill_(0.)
             conv.weight = torch.nn.Parameter(w, requires_grad=True)
 
+        for conv in self.kps_preds:
+            b = conv.bias.view(-1, )
+            b.data.fill_(0.0)
+            conv.bias = torch.nn.Parameter(b.view(-1), requires_grad=True)
+            # w = conv.weight
+            # w.data.fill_(.1)
+            # conv.weight = torch.nn.Parameter(w, requires_grad=True)
+            torch.nn.init.xavier_uniform_(conv.weight)
+            # torch.nn.init.xavier_uniform_(conv.bias, 0)
+
         self.proj = nn.Parameter(torch.linspace(0, self.reg_max, self.reg_max + 1), requires_grad=False)
         self.proj_conv.weight = nn.Parameter(self.proj.view([1, self.reg_max + 1, 1, 1]).clone().detach(),
                                                    requires_grad=False)
@@ -76,27 +90,34 @@ class Detect(nn.Module):
         if self.training:
             cls_score_list = []
             reg_distri_list = []
+            kps_dist_list = []
 
             for i in range(self.nl):
                 x[i] = self.stems[i](x[i])
                 cls_x = x[i]
                 reg_x = x[i]
+                kps_x = x[i]
                 cls_feat = self.cls_convs[i](cls_x)
                 cls_output = self.cls_preds[i](cls_feat)
                 reg_feat = self.reg_convs[i](reg_x)
                 reg_output = self.reg_preds[i](reg_feat)
+                kps_feat = self.kps_convs[i](kps_x)
+                kps_output = self.kps_preds[i](kps_feat)
 
                 cls_output = torch.sigmoid(cls_output)
                 cls_score_list.append(cls_output.flatten(2).permute((0, 2, 1)))
                 reg_distri_list.append(reg_output.flatten(2).permute((0, 2, 1)))
+                kps_dist_list.append(kps_output.flatten(2).permute((0, 2, 1)))
 
             cls_score_list = torch.cat(cls_score_list, axis=1)
             reg_distri_list = torch.cat(reg_distri_list, axis=1)
+            kps_dist_list = torch.cat(kps_dist_list, axis=1)
 
-            return x, cls_score_list, reg_distri_list
+            return x, cls_score_list, reg_distri_list, kps_dist_list
         else:
             cls_score_list = []
             reg_dist_list = []
+            kps_dist_list = []
             anchor_points, stride_tensor = generate_anchors(
                 x, self.stride, self.grid_cell_size, self.grid_cell_offset, device=x[0].device, is_eval=True)
 
@@ -106,10 +127,13 @@ class Detect(nn.Module):
                 x[i] = self.stems[i](x[i])
                 cls_x = x[i]
                 reg_x = x[i]
+                kps_x = x[i]
                 cls_feat = self.cls_convs[i](cls_x)
                 cls_output = self.cls_preds[i](cls_feat)
                 reg_feat = self.reg_convs[i](reg_x)
                 reg_output = self.reg_preds[i](reg_feat)
+                kps_feat = self.kps_convs[i](kps_x)
+                kps_output = self.kps_preds[i](kps_feat)
 
                 if self.use_dfl:
                     reg_output = reg_output.reshape([-1, 4, self.reg_max + 1, l]).permute(0, 2, 1, 3)
@@ -118,10 +142,16 @@ class Detect(nn.Module):
                 cls_output = torch.sigmoid(cls_output)
                 cls_score_list.append(cls_output.reshape([b, self.nc, l]))
                 reg_dist_list.append(reg_output.reshape([b, 4, l]))
+                kps_dist_list.append(kps_output.reshape([b, 10, l]))
 
             cls_score_list = torch.cat(cls_score_list, axis=-1).permute(0, 2, 1)
             reg_dist_list = torch.cat(reg_dist_list, axis=-1).permute(0, 2, 1)
+            kps_dist_list = torch.cat(kps_dist_list, axis=-1).permute(0, 2, 1)
 
+            pred_kps = kps_dist_list + anchor_points.unsqueeze(0).repeat([x[0].size(0), 1, 5])
+            pred_kps *= stride_tensor.unsqueeze(0).repeat([x[0].size(0), 1, 10])
+            # pred_kps = kps_dist_list + anchor_points.repeat([1, 1, 5])
+            # pred_kps *= stride_tensor
 
             pred_bboxes = dist2bbox(reg_dist_list, anchor_points, box_format='xywh')
             pred_bboxes *= stride_tensor
@@ -129,7 +159,8 @@ class Detect(nn.Module):
                 [
                     pred_bboxes,
                     torch.ones((b, pred_bboxes.shape[1], 1), device=pred_bboxes.device, dtype=pred_bboxes.dtype),
-                    cls_score_list
+                    cls_score_list,
+                    pred_kps
                 ],
                 axis=-1)
 
@@ -157,6 +188,13 @@ def build_effidehead_layer(channels_list, num_anchors, num_classes, reg_max=16):
             kernel_size=3,
             stride=1
         ),
+        # kps_conv0
+        Conv(
+            in_channels=channels_list[6],
+            out_channels=channels_list[6],
+            kernel_size=3,
+            stride=1
+        ),
         # cls_pred0
         nn.Conv2d(
             in_channels=channels_list[6],
@@ -167,6 +205,12 @@ def build_effidehead_layer(channels_list, num_anchors, num_classes, reg_max=16):
         nn.Conv2d(
             in_channels=channels_list[6],
             out_channels=4 * (reg_max + num_anchors),
+            kernel_size=1
+        ),
+        # kps_pred0
+        nn.Conv2d(
+            in_channels=channels_list[6],
+            out_channels=10 * num_anchors,
             kernel_size=1
         ),
         # stem1
@@ -190,6 +234,13 @@ def build_effidehead_layer(channels_list, num_anchors, num_classes, reg_max=16):
             kernel_size=3,
             stride=1
         ),
+        # kps_conv1
+        Conv(
+            in_channels=channels_list[8],
+            out_channels=channels_list[8],
+            kernel_size=3,
+            stride=1
+        ),
         # cls_pred1
         nn.Conv2d(
             in_channels=channels_list[8],
@@ -200,6 +251,12 @@ def build_effidehead_layer(channels_list, num_anchors, num_classes, reg_max=16):
         nn.Conv2d(
             in_channels=channels_list[8],
             out_channels=4 * (reg_max + num_anchors),
+            kernel_size=1
+        ),
+        # kps_pred1
+        nn.Conv2d(
+            in_channels=channels_list[8],
+            out_channels=10 * num_anchors,
             kernel_size=1
         ),
         # stem2
@@ -223,6 +280,13 @@ def build_effidehead_layer(channels_list, num_anchors, num_classes, reg_max=16):
             kernel_size=3,
             stride=1
         ),
+        # kps_conv2
+        Conv(
+            in_channels=channels_list[10],
+            out_channels=channels_list[10],
+            kernel_size=3,
+            stride=1
+        ),
         # cls_pred2
         nn.Conv2d(
             in_channels=channels_list[10],
@@ -233,6 +297,12 @@ def build_effidehead_layer(channels_list, num_anchors, num_classes, reg_max=16):
         nn.Conv2d(
             in_channels=channels_list[10],
             out_channels=4 * (reg_max + num_anchors),
+            kernel_size=1
+        ),
+        # kps_pred2
+        nn.Conv2d(
+            in_channels=channels_list[10],
+            out_channels=10 * num_anchors,
             kernel_size=1
         )
     )

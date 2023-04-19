@@ -1,8 +1,8 @@
-#train: /media/sdb/data/custom_insightface/images/train2017 # train images
-#val: /media/sdb/data/custom_insightface/images/val2017 # val images
+train: /media/sdb/data/custom_insightface/images/train2017 # train images
+val: /media/sdb/data/custom_insightface/images/val2017 # val images
 
-train: /media/manu/kingstoo/yolov5/custom_insightface/images/train2017 # train images
-val: /media/manu/kingstoo/yolov5/custom_insightface/images/val2017 # val images
+#train: /media/manu/kingstoo/yolov5/custom_insightface/images/train2017 # train images
+#val: /media/manu/kingstoo/yolov5/custom_insightface/images/val2017 # val images
 
 # whether it is coco dataset, only coco dataset should be set to True.
 is_coco: False

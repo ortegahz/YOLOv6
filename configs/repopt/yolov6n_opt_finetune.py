@@ -1,8 +1,10 @@
 # YOLOv6n model
 model = dict(
     type='YOLOv6n',
-    pretrained='/home/manu/tmp/yolov6n_coco_opt_8gpu_e600/weights/best_ckpt.pt',
-    scales='/home/manu/tmp/yolov6n_coco_hs_8gpu_efo/weights/best_ckpt.pt',
+    # pretrained='/home/manu/tmp/yolov6n_scut_opt_8gpu_efo/weights/best_ckpt.pt',
+    # scales='/home/manu/tmp/yolov6n_coco_hs_8gpu_efo/weights/best_ckpt.pt',
+    pretrained='/media/manu-pc/tmp/yolov6n_scut_opt_8gpu_efo/weights/best_ckpt.pt',
+    scales='/media/manu-pc/tmp/yolov6n_coco_hs_8gpu_efo/weights/best_ckpt.pt',
     depth_multiple=0.33,
     width_multiple=0.25,
     backbone=dict(
@@ -32,8 +34,10 @@ model = dict(
 solver = dict(
     optim='SGD',
     lr_scheduler='Cosine',
-    lr0=0.0032,
-    lrf=0.12,
+    # lr0=0.0032,
+    # lrf=0.12,
+    lr0=1.0,
+    lrf=0.1,
     momentum=0.843,
     weight_decay=0.00036,
     warmup_epochs=2.0,

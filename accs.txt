@@ -58,7 +58,7 @@
  Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.712
 =================================================
 
-==================== scut_e50w5_s480 ====================
+==================== scut_e20w5_s480 ====================
  Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.426
  Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 0.874
  Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=100 ] = 0.353

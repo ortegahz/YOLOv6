@@ -1,0 +1,15 @@
+# Please insure that your custom_dataset are put in same parent dir with YOLOv6_DIR
+
+#train:  /media/manu/kingstoo/yolov5/custom_head_kps/images/train
+#val:  /media/manu/kingstoo/yolov5/custom_head_kps/images/val
+
+train: /media/sdb/data/custom_head_kps/images/train
+val: /media/sdb/data/custom_head_kps/images/val
+train_face: /media/sdb/data/custom_widerface_yolov6/images/train  # 12880 images
+val_face: /media/sdb/data/custom_widerface_yolov6/images/val  # 3226 images
+
+# whether it is coco dataset, only coco dataset should be set to True.
+is_coco: False
+# Classes
+nc: 1  # number of classes
+names: ['obj']  # class names

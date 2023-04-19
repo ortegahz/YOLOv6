@@ -52,6 +52,7 @@ class Trainer:
         self.data_dict = load_yaml(args.data_path)
         self.num_classes = self.data_dict['nc']
         self.train_loader, self.val_loader = self.get_data_loader(args, cfg, self.data_dict)
+        self.train_loader_face, self.val_loader_face = self.get_data_loader(args, cfg, self.data_dict, suffix='_face')
         # get model and optimizer
         self.distill_ns = True if self.args.distill and self.cfg.model.type in ['YOLOv6n','YOLOv6s'] else False
         model = self.get_model(args, cfg, self.num_classes, device)
@@ -119,7 +120,8 @@ class Trainer:
     def train_in_loop(self, epoch_num):
         try:
             self.prepare_for_steps()
-            for self.step, self.batch_data in self.pbar:
+            # for self.step, self.batch_data in self.pbar:
+            for self.step, (self.batch_data, self.batch_data_face) in self.pbar:
                 self.train_in_steps(epoch_num, self.step)
                 self.print_details()
         except Exception as _:
@@ -302,14 +304,18 @@ class Trainer:
             self.cfg.data_aug.mosaic = 0.0
             self.cfg.data_aug.mixup = 0.0
             self.train_loader, self.val_loader = self.get_data_loader(self.args, self.cfg, self.data_dict)
+            self.train_loader_face, self.val_loader_face = \
+                self.get_data_loader(self.args, self.cfg, self.data_dict, suffix='_face')
         self.model.train()
         if self.rank != -1:
             self.train_loader.sampler.set_epoch(self.epoch)
+            self.train_loader_face.sampler.set_epoch(self.epoch)
         self.mean_loss = torch.zeros(self.loss_num, device=self.device)
         self.optimizer.zero_grad()
 
         LOGGER.info(('\n' + '%10s' * (self.loss_num + 1)) % (*self.loss_info,))
-        self.pbar = enumerate(self.train_loader)
+        # self.pbar = enumerate(self.train_loader)
+        self.pbar = enumerate(zip(self.train_loader, self.train_loader_face))
         if self.main_process:
             self.pbar = tqdm(self.pbar, total=self.max_stepnum, ncols=NCOLS, bar_format='{l_bar}{bar:10}{r_bar}{bar:-10b}')
 
@@ -350,8 +356,8 @@ class Trainer:
             self.last_opt_step = curr_step
 
     @staticmethod
-    def get_data_loader(args, cfg, data_dict):
-        train_path, val_path = data_dict['train'], data_dict['val']
+    def get_data_loader(args, cfg, data_dict, suffix=''):
+        train_path, val_path = data_dict['train' + suffix], data_dict['val' + suffix]
         # check data
         nc = int(data_dict['nc'])
         class_names = data_dict['names']

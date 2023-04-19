@@ -58,6 +58,21 @@
  Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.712
 =================================================
 
+==================== mhb_s480_e50w5_zip_full ====================
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.446
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 0.898
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=100 ] = 0.376
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.377
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.588
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.660
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=  1 ] = 0.026
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 10 ] = 0.198
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.515
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.463
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.650
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.713
+=================================================
+
 ==================== scut_e20w5_s480 ====================
  Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.426
  Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 0.874
@@ -131,4 +146,32 @@
  Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.420
  Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.614
  Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.689
+=================================================
+
+************************************************************************************************************************
+************************************************************************************************************************
+************************************************************************************************************************
+
+==================== official ====================
+Easy   Val AP: 0.9495169224961563
+Medium Val AP: 0.9244110129862004
+Hard   Val AP: 0.8042969382687337
+=================================================
+
+==================== ofc ====================
+Easy   Val AP: 0.9487700363105988
+Medium Val AP: 0.9254886646603139
+Hard   Val AP: 0.8045799462625057
+=================================================
+
+==================== ofc_s480 ====================
+Easy   Val AP: 0.9418363495639049
+Medium Val AP: 0.9189705607590065
+Hard   Val AP: 0.806908677186561
+=================================================
+
+==================== ofc_s480_e50 ====================
+Easy   Val AP: 0.9276837270141466
+Medium Val AP: 0.9044861233874076
+Hard   Val AP: 0.7830269414576623
 =================================================

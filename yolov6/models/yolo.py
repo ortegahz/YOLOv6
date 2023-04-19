@@ -21,28 +21,43 @@ class Model(nn.Module):
         # Build network
         num_layers = config.model.head.num_layers
         self.backbone, self.neck, self.detect = build_network(config, channels, num_classes, num_layers, fuse_ab=fuse_ab, distill_ns=distill_ns)
+        self.backbone_face, self.neck_face, self.detect_face = build_network(config, channels, num_classes, num_layers,
+                                                              fuse_ab=fuse_ab, distill_ns=distill_ns)
 
         # Init Detect head
         self.stride = self.detect.stride
         self.detect.initialize_biases()
+
+        # Init Detect head face
+        self.stride_face = self.detect_face.stride
+        self.detect_face.initialize_biases()
 
         # Init weights
         initialize_weights(self)
 
     def forward(self, x):
         export_mode = torch.onnx.is_in_onnx_export()
+
+        xf = self.backbone_face(x)
+        xf = self.neck_face(xf)
         x = self.backbone(x)
         x = self.neck(x)
         if export_mode == False:
             featmaps = []
+            featmaps_face = []
             featmaps.extend(x)
+            featmaps_face.extend(xf)
+        xf = self.detect_face(xf)
         x = self.detect(x)
-        return x if export_mode is True else [x, featmaps]
+
+        return x if export_mode is True else [x, xf,  featmaps, featmaps_face]
 
     def _apply(self, fn):
         self = super()._apply(fn)
         self.detect.stride = fn(self.detect.stride)
         self.detect.grid = list(map(fn, self.detect.grid))
+        # self.detect_face.stride = fn(self.detect_face.stride)
+        # self.detect_face.grid = list(map(fn, self.detect_face.grid))
         return self
 
 

@@ -29,7 +29,7 @@ python -m torch.distributed.launch --nproc_per_node 8 tools/train.py --batch 64 
 # test
 python tools/eval.py --data data/scut_kps.yaml --batch 32 --weights /home/manu/tmp/ofc_scut_e100/weights/last_ckpt.pt --task val --reproduce_640_eval
 python tools/eval.py --data data/scut_kps.yaml --batch 32 --weights runs/train/exp/weights/last_ckpt.pt --task val --reproduce_640_eval
-python tools/eval.py --data data/scut_kps.yaml --batch 32 --weights runs/train/exp2/weights/best_ckpt.pt --task val --reproduce_640_eval
+python tools/eval.py --data data/scut_kps.yaml --batch 32 --weights runs/train/exp7/weights/best_ckpt.pt --task val --reproduce_640_eval
 
 # evaluation
 python tools/infer.py --weights /home/manu/tmp/yolov6n_face.pt --source /media/manu/kingstoo/yolov6/WIDER_val/images --yaml data/WIDER_FACE.yaml --conf 0.02 --not-save-img --save-txt-widerface --name widerface_yolov6n

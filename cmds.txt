@@ -47,3 +47,4 @@ http://192.168.3.10:6006/
 
 # export
 python ./deploy/ONNX/export_onnx.py --weights /home/manu/tmp/exp9/weights/best_ckpt.pt --img 640 --batch 1 --simplify
+cp /home/manu/tmp/exp9/weights/best_ckpt.onnx /home/manu/tmp -rvf

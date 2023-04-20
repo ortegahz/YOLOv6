@@ -50,7 +50,7 @@ class Model(nn.Module):
         xf = self.detect_face(xf)
         x = self.detect(x)
 
-        return x if export_mode is True else [x, xf,  featmaps, featmaps_face]
+        return [x, xf] if export_mode is True else [x, xf,  featmaps, featmaps_face]
 
     def _apply(self, fn):
         self = super()._apply(fn)

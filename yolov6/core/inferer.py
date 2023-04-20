@@ -76,8 +76,8 @@ class Inferer:
                 img = img[None]
                 # expand for batch dim
             t1 = time.time()
-            pred_results = self.model(img)
-            det = non_max_suppression_face(pred_results, conf_thres, iou_thres, classes, agnostic_nms, max_det=max_det)[0]
+            pred_results, pred_results_face = self.model(img)
+            det = non_max_suppression_face(pred_results_face, conf_thres, iou_thres, classes, agnostic_nms, max_det=max_det)[0]
             t2 = time.time()
 
             if self.webcam:

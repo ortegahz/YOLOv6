@@ -14,7 +14,7 @@ python tools/infer.py --weights /home/manu/tmp/exp11/weights/last_ckpt.pt --sour
 python tools/infer.py --weights /home/manu/tmp/ofc_scut_e100/weights/best_ckpt.pt --source /media/manu/samsung/pics/students.bmp --yaml data/scut_kps.yaml --conf 0.4 --name scut
 python tools/infer.py --weights /home/manu/tmp/ofc_scut_e100/weights/best_ckpt.pt --source /home/manu/nfs/tmp/install/rknn_yolov5_demo_Linux/model/sylgd_rp.bmp --yaml data/scut_kps.yaml --conf 0.4 --name scut --img-size 1280 1280 --hide-labels
 python tools/infer.py --weights /home/manu/tmp/ofc_scut_e400/weights/best_ckpt.pt --source /home/manu/nfs/tmp/install/rknn_yolov5_demo_Linux/model/sylgd_rp.bmp --yaml data/scut_kps.yaml --conf 0.4 --name scut --img-size 640 640 --hide-labels
-python tools/infer.py --weights /home/manu/tmp/ofc_scut_e400/weights/best_ckpt.pt --source /media/manu/samsung/pics/students.bmp --yaml data/scut_kps.yaml --conf 0.4 --name scut
+python tools/infer.py --weights /home/manu/tmp/exp9/weights/best_ckpt.pt --source /media/manu/samsung/pics/students.bmp --yaml data/scut_wdf.yaml --conf 0.4 --name scut
 
 # train
 [official] python -m torch.distributed.launch --nproc_per_node 8 tools/train.py --batch 64 --conf configs/yolov6s_finetune.py --data data/WIDER_FACE.yaml --fuse_ab --device 0,1,2,3,4,5,6,7
@@ -44,3 +44,6 @@ python evaluation.py --pred ../runs/inference/widerface_yolov6n/labels/images/
 tensorboard --logdir /home/manu/tmp/ofc_scut_e100 --bind_all
 tensorboard --logdir runs/train/exp2 --bind_all
 http://192.168.3.10:6006/
+
+# export
+python ./deploy/ONNX/export_onnx.py --weights /home/manu/tmp/exp9/weights/best_ckpt.pt --img 640 --batch 1 --simplify

@@ -483,7 +483,8 @@ class DetectBackend(nn.Module):
         self.__dict__.update(locals())  # assign all variables to self
 
     def forward(self, im, val=False):
-        y, _ = self.model(im)
+        y, yf, _, _ = self.model(im)
+        y = yf
         if isinstance(y, np.ndarray):
             y = torch.tensor(y, device=self.device)
         return y

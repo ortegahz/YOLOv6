@@ -36,7 +36,7 @@ python tools/eval.py --data data/scut_kps.yaml --batch 32 --weights runs/train/e
 
 # evaluation
 python tools/infer.py --weights /home/manu/tmp/yolov6n_face.pt --source /media/manu/kingstoo/yolov6/WIDER_val/images --yaml data/WIDER_FACE.yaml --conf 0.02 --not-save-img --save-txt-widerface --name widerface_yolov6n
-python tools/infer.py --weights /home/manu/tmp/exp6/weights/last_ckpt.pt --source /media/manu/kingstoo/yolov6/WIDER_val/images --yaml data/WIDER_FACE.yaml --conf 0.02 --not-save-img --save-txt-widerface --name widerface_yolov6n
+python tools/infer.py --weights /home/manu/tmp/exp9/weights/last_ckpt.pt --source /media/manu/kingstoo/yolov6/WIDER_val/images --yaml data/WIDER_FACE.yaml --conf 0.02 --not-save-img --save-txt-widerface --name widerface_yolov6n
 
 python evaluation.py --pred ../runs/inference/widerface_yolov6n/labels/images/
 

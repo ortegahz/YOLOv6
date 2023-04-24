@@ -13,7 +13,7 @@ python tools/infer.py --weights /home/manu/tmp/ofc_scut_e100/weights/best_ckpt.p
 python tools/infer.py --weights /home/manu/tmp/ofc_scut_e400/weights/best_ckpt.pt --source /home/manu/nfs/tmp/install/rknn_yolov5_demo_Linux/model/sylgd_rp.bmp --yaml data/scut_kps.yaml --conf 0.4 --name scut --img-size 640 640 --hide-labels
 python tools/infer.py --weights /home/manu/tmp/ofc_scut_e400/weights/best_ckpt.pt --source /media/manu/samsung/pics/students.bmp --yaml data/scut_kps.yaml --conf 0.4 --name scut
 python tools/infer.py --weights /home/manu/tmp/exp14/weights/best_ckpt.pt --source /media/manu/samsung/pics/126_1152_576.bmp --yaml data/bhv_kps.yaml --conf 0.4 --name bhv
-python tools/infer.py --weights /home/manu/tmp/bhv_s480_e30w5/weights/best_ckpt.pt --yaml data/bhv_kps.yaml --conf 0.4 --name bhv --source /media/manu/samsung/videos/at2021/mp4/Video1.mp4 --view-img
+python tools/infer.py --weights /home/manu/tmp/bhv_s480_e30w5/weights/best_ckpt.pt --yaml data/bhv_kps.yaml --conf 0.4 --name bhv --source /media/manu/samsung/videos/at2021/mp4/Video1年级.mp4 --view-img --img-size 1280 1280
 
 # train
 [official] python -m torch.distributed.launch --nproc_per_node 8 tools/train.py --batch 64 --conf configs/yolov6s_finetune.py --data data/WIDER_FACE.yaml --fuse_ab --device 0,1,2,3,4,5,6,7
@@ -32,7 +32,7 @@ python -m torch.distributed.launch --nproc_per_node 8 tools/train.py --batch 64 
 python tools/eval.py --data data/scut_kps.yaml --batch 32 --weights /home/manu/tmp/ofc_scut_e100/weights/last_ckpt.pt --task val --reproduce_640_eval
 python tools/eval.py --data data/scut_kps.yaml --batch 32 --weights runs/train/exp/weights/last_ckpt.pt --task val --reproduce_640_eval
 python tools/eval.py --data data/scut_kps.yaml --batch 32 --weights runs/train/exp1/weights/best_ckpt.pt --task val --reproduce_640_eval
-python tools/eval.py --data data/bhv_kps.yaml --batch 32 --weights runs/train/exp14/weights/best_ckpt.pt --task val --reproduce_640_eval
+python tools/eval.py --data data/bhv_kps.yaml --batch 32 --weights runs/train/exp15/weights/best_ckpt.pt --task val --reproduce_640_eval
 
 # evaluation
 python tools/infer.py --weights /home/manu/tmp/yolov6n_face.pt --source /media/manu/kingstoo/yolov6/WIDER_val/images --yaml data/WIDER_FACE.yaml --conf 0.02 --not-save-img --save-txt-widerface --name widerface_yolov6n
@@ -41,6 +41,6 @@ python tools/infer.py --weights /home/manu/tmp/exp6/weights/last_ckpt.pt --sourc
 python evaluation.py --pred ../runs/inference/widerface_yolov6n/labels/images/
 
 # tensorboard
-tensorboard --logdir /home/manu/tmp/ofc_scut_e100 --bind_all
-tensorboard --logdir runs/train/exp13 --bind_all
+tensorboard --logdir /home/manu/tmp/yolov6n_bhv_opt_8gpu_efo --bind_all
+tensorboard --logdir runs/train/exp15 --bind_all
 http://192.168.3.10:6006/

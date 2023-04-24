@@ -24,13 +24,13 @@ screen python -m torch.distributed.launch --nproc_per_node 8 tools/train.py --ba
 screen python -m torch.distributed.launch --nproc_per_node 8 tools/train.py --batch 64 --conf configs/yolov6n_finetune.py --data data/scut_kps.yaml --fuse_ab --device 0,1,2,3,4,5,6,7 --epochs 100 --img-size 480
 screen python -m torch.distributed.launch --nproc_per_node 8 tools/train.py --batch 64 --conf configs/yolov6n_finetune.py --data data/scut_kps.yaml --fuse_ab --device 0,1,2,3,4,5,6,7 --epochs 400
 python -m torch.distributed.launch --nproc_per_node 8 tools/train.py --batch 64 --conf configs/yolov6n_finetune.py --data data/scut_wdf.yaml --fuse_ab --device 0,1,2,3,4,5,6,7 --img-size 480 --epochs 10 --stop_aug_last_n_epoch 5 --heavy-eval-range 10
-
-python -m torch.distributed.launch --nproc_per_node 8 tools/train.py --batch 64 --conf configs/yolov6s_finetune.py --data data/scut_kps.yaml --fuse_ab --device 0,1,2,3,4,5,6,7  --img-size 480 --epochs 10 --stop_aug_last_n_epoch 5 --heavy-eval-range 10
+python -m torch.distributed.launch --nproc_per_node 8 tools/train.py --batch 64 --conf configs/yolov6n_finetune.py --data data/bhv_kps.yaml --fuse_ab --device 0,1,2,3,4,5,6,7 --img-size 480 --epochs 30 --stop_aug_last_n_epoch 5 --heavy-eval-range 30
 
 # test
 python tools/eval.py --data data/scut_kps.yaml --batch 32 --weights /home/manu/tmp/ofc_scut_e100/weights/last_ckpt.pt --task val --reproduce_640_eval
 python tools/eval.py --data data/scut_kps.yaml --batch 32 --weights runs/train/exp/weights/last_ckpt.pt --task val --reproduce_640_eval
 python tools/eval.py --data data/scut_kps.yaml --batch 32 --weights runs/train/exp1/weights/best_ckpt.pt --task val --reproduce_640_eval
+python tools/eval.py --data data/bhv_kps.yaml --batch 32 --weights runs/train/exp13/weights/best_ckpt.pt --task val --reproduce_640_eval
 
 # evaluation
 python tools/infer.py --weights /home/manu/tmp/yolov6n_face.pt --source /media/manu/kingstoo/yolov6/WIDER_val/images --yaml data/WIDER_FACE.yaml --conf 0.02 --not-save-img --save-txt-widerface --name widerface_yolov6n
@@ -38,97 +38,7 @@ python tools/infer.py --weights /home/manu/tmp/exp6/weights/last_ckpt.pt --sourc
 
 python evaluation.py --pred ../runs/inference/widerface_yolov6n/labels/images/
 
-==================== ofc_scut_e400 ====================
- Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.481
- Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 0.926
- Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=100 ] = 0.433
- Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.416
- Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.609
- Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.673
- Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=  1 ] = 0.027
- Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 10 ] = 0.204
- Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.547
- Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.499
- Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.671
- Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.720
-=================================================
-
-==================== ofc_scut_e100 ====================
- Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.470
- Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 0.914
- Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=100 ] = 0.415
- Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.401
- Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.606
- Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.676
- Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=  1 ] = 0.027
- Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 10 ] = 0.202
- Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.535
- Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.485
- Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.665
- Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.726
-=================================================
-
-==================== ofc_scut_e100_s480 ====================
- Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.460
- Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 0.913
- Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=100 ] = 0.395
- Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.391
- Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.600
- Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.669
- Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=  1 ] = 0.026
- Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 10 ] = 0.200
- Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.527
- Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.476
- Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.659
- Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.717
-=================================================
-
-==================== scut_s480_e20w5 ====================
- Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.407
- Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 0.853
- Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=100 ] = 0.328
- Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.334
- Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.566
- Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.623
- Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=  1 ] = 0.025
- Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 10 ] = 0.190
- Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.482
- Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.424
- Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.635
- Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.685
-=================================================
-
-==================== scut_s480_e10w5 ====================
- Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.397
- Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 0.840
- Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=100 ] = 0.312
- Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.324
- Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.551
- Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.625
- Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=  1 ] = 0.025
- Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 10 ] = 0.186
- Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.471
- Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.414
- Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.616
- Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.689
-=================================================
-
-==================== scut_s480_e10w5_s ====================
- Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.440
- Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 0.890
- Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=100 ] = 0.368
- Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.371
- Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.584
- Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.653
- Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=  1 ] = 0.026
- Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 10 ] = 0.195
- Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.510
- Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.458
- Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.644
- Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.710
-=================================================
-
 # tensorboard
 tensorboard --logdir /home/manu/tmp/ofc_scut_e100 --bind_all
-tensorboard --logdir runs/train/exp24 --bind_all
+tensorboard --logdir runs/train/exp13 --bind_all
 http://192.168.3.10:6006/

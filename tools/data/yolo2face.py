@@ -28,12 +28,13 @@ def process(args):
                 path_lb_i = path_lb_i.replace('.jpg', '.txt')
                 path_lb_o = path_img_o.replace('images', 'labels')
                 path_lb_o = path_lb_o.replace('.jpg', '.txt')
-                with open(path_lb_i, 'r') as flbi, open(path_lb_o, 'w') as flbo:
-                    lines_lb_i = flbi.readlines()
-                    for line_lb_i in lines_lb_i:
-                        if len(line_lb_i.split()) < 5:
-                            print('error')
-                        flbo.writelines(line_lb_i[:-1] + ' -1 -1 -1 -1 -1 -1 -1 -1 -1 -1\n')
+                if os.path.exists(path_lb_i):
+                    with open(path_lb_i, 'r') as flbi, open(path_lb_o, 'w') as flbo:
+                        lines_lb_i = flbi.readlines()
+                        for line_lb_i in lines_lb_i:
+                            if len(line_lb_i.split()) < 5:
+                                print('error')
+                            flbo.writelines(line_lb_i[:-1] + ' -1 -1 -1 -1 -1 -1 -1 -1 -1 -1\n')
 
 
 def new_dirs(args):
@@ -54,8 +55,8 @@ def new_dirs(args):
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dir_in_root', default='/media/manu/kingstoo/yolov5/custom_head', type=str)
-    parser.add_argument('--dir_out_root', default='/media/manu/kingstoo/yolov5/custom_head_kps', type=str)
+    parser.add_argument('--dir_in_root', default='/media/sdb/data/custom_behavior', type=str)
+    parser.add_argument('--dir_out_root', default='/media/sdb/data/custom_behavior_kps', type=str)
     parser.add_argument('--subsets', nargs='*', default=['train', 'val'], type=str)
     return parser.parse_args()
 

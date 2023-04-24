@@ -94,11 +94,12 @@ class TrainValDataset(Dataset):
             shapes = None
 
             # MixUp augmentation
-            if random.random() < self.hyp["mixup"]:
+            if random.random() < self.hyp["mixup"] and len(labels):
                 img_other, labels_other = self.get_mosaic(
                     random.randint(0, len(self.img_paths) - 1)
                 )
-                img, labels = mixup(img, labels, img_other, labels_other)
+                if len(labels_other):
+                    img, labels = mixup(img, labels, img_other, labels_other)
 
         else:
             # Load image

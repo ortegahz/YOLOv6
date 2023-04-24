@@ -12,6 +12,8 @@ python tools/infer.py --weights /home/manu/tmp/ofc_scut_e100/weights/best_ckpt.p
 python tools/infer.py --weights /home/manu/tmp/ofc_scut_e100/weights/best_ckpt.pt --source /home/manu/nfs/tmp/install/rknn_yolov5_demo_Linux/model/sylgd_rp.bmp --yaml data/scut_kps.yaml --conf 0.4 --name scut --img-size 1280 1280 --hide-labels
 python tools/infer.py --weights /home/manu/tmp/ofc_scut_e400/weights/best_ckpt.pt --source /home/manu/nfs/tmp/install/rknn_yolov5_demo_Linux/model/sylgd_rp.bmp --yaml data/scut_kps.yaml --conf 0.4 --name scut --img-size 640 640 --hide-labels
 python tools/infer.py --weights /home/manu/tmp/ofc_scut_e400/weights/best_ckpt.pt --source /media/manu/samsung/pics/students.bmp --yaml data/scut_kps.yaml --conf 0.4 --name scut
+python tools/infer.py --weights /home/manu/tmp/exp14/weights/best_ckpt.pt --source /media/manu/samsung/pics/126_1152_576.bmp --yaml data/bhv_kps.yaml --conf 0.4 --name bhv
+python tools/infer.py --weights /home/manu/tmp/bhv_s480_e30w5/weights/best_ckpt.pt --yaml data/bhv_kps.yaml --conf 0.4 --name bhv --source /media/manu/samsung/videos/at2021/mp4/Video1.mp4 --view-img
 
 # train
 [official] python -m torch.distributed.launch --nproc_per_node 8 tools/train.py --batch 64 --conf configs/yolov6s_finetune.py --data data/WIDER_FACE.yaml --fuse_ab --device 0,1,2,3,4,5,6,7

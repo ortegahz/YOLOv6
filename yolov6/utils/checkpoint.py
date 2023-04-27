@@ -18,6 +18,9 @@ def load_state_dict(weights, model, map_location=None):
         if 'face' in k:
             kc = k.replace('_face', '')
             state_dict[k] = state_dict[kc]
+        if 'bhv' in k:
+            kc = k.replace('_bhv', '')
+            state_dict[k] = state_dict[kc]
     state_dict = {k: v for k, v in state_dict.items() if k in model_state_dict and v.shape == model_state_dict[k].shape}
     model.load_state_dict(state_dict, strict=False)
     del ckpt, state_dict, model_state_dict

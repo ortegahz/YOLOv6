@@ -16,12 +16,14 @@ class Model(nn.Module):
     The default parts are EfficientRep Backbone, Rep-PAN and
     Efficient Decoupled Head.
     '''
-    def __init__(self, config, channels=3, num_classes=None, fuse_ab=False, distill_ns=False):  # model, input channels, number of classes
+    def __init__(self, config, channels=3, num_classes=None, num_classes_bhv=None, fuse_ab=False, distill_ns=False):  # model, input channels, number of classes
         super().__init__()
         # Build network
         num_layers = config.model.head.num_layers
         self.backbone, self.neck, self.detect = build_network(config, channels, num_classes, num_layers, fuse_ab=fuse_ab, distill_ns=distill_ns)
         self.backbone_face, self.neck_face, self.detect_face = build_network(config, channels, num_classes, num_layers,
+                                                              fuse_ab=fuse_ab, distill_ns=distill_ns)
+        self.backbone_bhv, self.neck_bhv, self.detect_bhv = build_network(config, channels, num_classes_bhv, num_layers,
                                                               fuse_ab=fuse_ab, distill_ns=distill_ns)
 
         # Init Detect head
@@ -32,12 +34,18 @@ class Model(nn.Module):
         self.stride_face = self.detect_face.stride
         self.detect_face.initialize_biases()
 
+        # Init Detect head bhv
+        self.stride_bhv = self.detect_bhv.stride
+        self.detect_bhv.initialize_biases()
+
         # Init weights
         initialize_weights(self)
 
     def forward(self, x):
         export_mode = torch.onnx.is_in_onnx_export()
 
+        xb = self.backbone_bhv(x)
+        xb = self.neck_bhv(xb)
         xf = self.backbone_face(x)
         xf = self.neck_face(xf)
         x = self.backbone(x)
@@ -45,12 +53,15 @@ class Model(nn.Module):
         if export_mode == False:
             featmaps = []
             featmaps_face = []
+            featmaps_bhv = []
             featmaps.extend(x)
             featmaps_face.extend(xf)
+            featmaps_bhv.extend(xb)
+        xb = self.detect_bhv(xb)
         xf = self.detect_face(xf)
         x = self.detect(x)
 
-        return [x, xf] if export_mode is True else [x, xf,  featmaps, featmaps_face]
+        return [x, xf, xb] if export_mode is True else [x, xf, xb,  featmaps, featmaps_face, featmaps_bhv]
 
     def _apply(self, fn):
         self = super()._apply(fn)
@@ -142,6 +153,6 @@ def build_network(config, channels, num_classes, num_layers, fuse_ab=False, dist
     return backbone, neck, head
 
 
-def build_model(cfg, num_classes, device, fuse_ab=False, distill_ns=False):
-    model = Model(cfg, channels=3, num_classes=num_classes, fuse_ab=fuse_ab, distill_ns=distill_ns).to(device)
+def build_model(cfg, num_classes, num_classes_hbv, device, fuse_ab=False, distill_ns=False):
+    model = Model(cfg, channels=3, num_classes=num_classes, num_classes_bhv=num_classes_hbv, fuse_ab=fuse_ab, distill_ns=distill_ns).to(device)
     return model

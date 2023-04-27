@@ -58,13 +58,17 @@ class TrainValDataset(Dataset):
         rank=-1,
         data_dict=None,
         task="train",
+        suffix='',
     ):
         assert task.lower() in ("train", "val", "test", "speed"), f"Not supported task: {task}"
         t1 = time.time()
         self.__dict__.update(locals())
         self.main_process = self.rank in (-1, 0)
         self.task = self.task.capitalize()
-        self.class_names = data_dict["names"]
+        if suffix == '_bhv':
+            self.class_names = data_dict["names_bhv"]
+        else:
+            self.class_names = data_dict["names"]
         self.img_paths, self.labels = self.get_imgs_labels(self.img_dir)
         if self.rect:
             shapes = [self.img_info[p]["shape"] for p in self.img_paths]
@@ -94,11 +98,12 @@ class TrainValDataset(Dataset):
             shapes = None
 
             # MixUp augmentation
-            if random.random() < self.hyp["mixup"]:
+            if random.random() < self.hyp["mixup"] and len(labels):
                 img_other, labels_other = self.get_mosaic(
                     random.randint(0, len(self.img_paths) - 1)
                 )
-                img, labels = mixup(img, labels, img_other, labels_other)
+                if len(labels_other):
+                    img, labels = mixup(img, labels, img_other, labels_other)
 
         else:
             # Load image

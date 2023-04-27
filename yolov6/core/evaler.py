@@ -97,9 +97,12 @@ class Evaler:
             if self.force_no_pad:
                 pad = 0.0
             rect = not self.not_infer_on_rect
-            dataloader = create_dataloader(self.data[task if task in ('train', 'val', 'test') else 'val'],
+            # dataloader = create_dataloader(self.data[task if task in ('train', 'val', 'test') else 'val'],
+            #                                self.img_size, self.batch_size, self.stride, hyp=eval_hyp, check_labels=True, pad=pad, rect=rect,
+            #                                data_dict=self.data, task=task)[0]
+            dataloader = create_dataloader(self.data['val_bhv'],
                                            self.img_size, self.batch_size, self.stride, hyp=eval_hyp, check_labels=True, pad=pad, rect=rect,
-                                           data_dict=self.data, task=task)[0]
+                                           data_dict=self.data, task=task, suffix='_bhv')[0]
         return dataloader
 
     def predict_model(self, model, dataloader, task):
@@ -131,12 +134,12 @@ class Evaler:
 
             # Inference
             t2 = time_sync()
-            outputs, outputs_face, _, _ = model(imgs)
+            outputs, outputs_face, outputs_bhv, _, _, _ = model(imgs)
             self.speed_result[2] += time_sync() - t2  # inference time
 
             # post-process
             t3 = time_sync()
-            outputs = non_max_suppression_face(outputs, self.conf_thres, self.iou_thres, multi_label=True)
+            outputs = non_max_suppression_face(outputs_bhv, self.conf_thres, self.iou_thres, multi_label=True)
             self.speed_result[3] += time_sync() - t3  # post-process time
             self.speed_result[0] += len(outputs)
 
@@ -432,7 +435,7 @@ class Evaler:
         with open(data, errors='ignore') as yaml_file:
             data = yaml.safe_load(yaml_file)
         task = 'test' if task == 'test' else 'val'
-        path = data.get(task, 'val')
+        path = data.get(task, 'val_bhv')
         if not os.path.exists(path):
             raise Exception('Dataset not found.')
         return data

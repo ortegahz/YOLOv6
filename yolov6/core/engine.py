@@ -51,11 +51,13 @@ class Trainer:
         # get data loader
         self.data_dict = load_yaml(args.data_path)
         self.num_classes = self.data_dict['nc']
+        self.num_classes_bhv = self.data_dict['nc_bhv']
         self.train_loader, self.val_loader = self.get_data_loader(args, cfg, self.data_dict)
         self.train_loader_face, self.val_loader_face = self.get_data_loader(args, cfg, self.data_dict, suffix='_face')
+        self.train_loader_bhv, self.val_loader_bhv = self.get_data_loader(args, cfg, self.data_dict, suffix='_bhv')
         # get model and optimizer
         self.distill_ns = True if self.args.distill and self.cfg.model.type in ['YOLOv6n','YOLOv6s'] else False
-        model = self.get_model(args, cfg, self.num_classes, device)
+        model = self.get_model(args, cfg, self.num_classes, self.num_classes_bhv, device)
         if self.args.distill:
             if self.args.fuse_ab:
                 LOGGER.error('ERROR in: Distill models should turn off the fuse_ab.\n')
@@ -85,6 +87,7 @@ class Trainer:
                 self.ema.updates = self.ckpt['updates']
         self.model = self.parallel_model(args, model, device)
         self.model.nc, self.model.names = self.data_dict['nc'], self.data_dict['names']
+        self.model.nc_bhv, self.model.names_bhv = self.data_dict['nc_bhv'], self.data_dict['names_bhv']
 
         self.max_epoch = args.epochs
         self.max_stepnum = len(self.train_loader)
@@ -93,7 +96,7 @@ class Trainer:
         self.vis_imgs_list = []
         self.write_trainbatch_tb = args.write_trainbatch_tb
         # set color for classnames
-        self.color = [tuple(np.random.choice(range(256), size=3)) for _ in range(self.model.nc)]
+        self.color = [tuple(np.random.choice(range(256), size=3)) for _ in range(self.model.nc_bhv)]
 
         self.loss_num = 6
         self.loss_info = ['Epoch', 'iou_loss', 'dfl_loss', 'cls_loss', 'rgt_loss', 'rbox_loss', 'lk_loss']
@@ -121,9 +124,10 @@ class Trainer:
         try:
             self.prepare_for_steps()
             # for self.step, self.batch_data in self.pbar:
-            for self.step, (self.batch_data, self.batch_data_face) in self.pbar:
+            for self.step, (self.batch_data, self.batch_data_face, self.batch_data_bhv) in self.pbar:
                 self.train_in_steps(epoch_num, self.step)
                 self.train_in_steps(epoch_num, self.step, state='face')
+                self.train_in_steps(epoch_num, self.step, state='bhv')
                 self.print_details()
         except Exception as _:
             LOGGER.error('ERROR in training steps.')
@@ -138,6 +142,8 @@ class Trainer:
     def train_in_steps(self, epoch_num, step_num, state=''):
         if state == 'face':
             images, targets = self.prepro_data(self.batch_data_face, self.device)
+        elif state == 'bhv':
+            images, targets = self.prepro_data(self.batch_data_bhv, self.device)
         else:
             images, targets = self.prepro_data(self.batch_data, self.device)
         # plot train_batch and save to tensorboard once an epoch
@@ -148,7 +154,7 @@ class Trainer:
         # forward
         with amp.autocast(enabled=self.device != 'cpu'):
             # preds, s_featmaps = self.model(images)
-            preds, preds_face,  s_featmaps, s_featmaps_face = self.model(images)
+            preds, preds_face, preds_bhv, s_featmaps, s_featmaps_face, s_featmaps_bhv = self.model(images)
             if self.args.distill:
                 with torch.no_grad():
                     t_preds, t_featmaps = self.teacher_model(images)
@@ -160,6 +166,11 @@ class Trainer:
                 if state == 'face':
                     total_loss, loss_items = self.compute_loss((preds_face[0],preds_face[3],preds_face[4]), targets, epoch_num, step_num) # YOLOv6_af
                     total_loss_ab, loss_items_ab = self.compute_loss_ab(preds_face[:3], targets, epoch_num, step_num) # YOLOv6_ab
+                    total_loss += total_loss_ab
+                    loss_items += loss_items_ab
+                elif state == 'bhv':
+                    total_loss, loss_items = self.compute_loss_bhv((preds_bhv[0],preds_bhv[3],preds_bhv[4]), targets, epoch_num, step_num) # YOLOv6_af
+                    total_loss_ab, loss_items_ab = self.compute_loss_ab_bhv(preds_bhv[:3], targets, epoch_num, step_num) # YOLOv6_ab
                     total_loss += total_loss_ab
                     loss_items += loss_items_ab
                 else:
@@ -175,7 +186,7 @@ class Trainer:
         self.scaler.scale(total_loss).backward()
         if state == '':
             self.loss_items = loss_items
-        if state == 'face':
+        if state == 'bhv':
             self.update_optimizer()
 
     def eval_and_save(self):
@@ -225,7 +236,7 @@ class Trainer:
                             img_size=self.img_size,
                             model=self.ema.ema if self.args.calib is False else self.model,
                             conf_thres=0.03,
-                            dataloader=self.val_loader,
+                            dataloader=self.val_loader_bhv,
                             save_dir=self.save_dir,
                             task='train')
         else:
@@ -275,6 +286,14 @@ class Trainer:
         self.best_ap, self.ap = 0.0, 0.0
         self.best_stop_strong_aug_ap = 0.0
         self.evaluate_results = (0, 0) # AP50, AP50_95
+
+        self.compute_loss_bhv = ComputeLoss(num_classes=self.data_dict['nc_bhv'],
+                                        ori_img_size=self.img_size,
+                                        warmup_epoch=self.cfg.model.head.atss_warmup_epoch,
+                                        use_dfl=self.cfg.model.head.use_dfl,
+                                        reg_max=self.cfg.model.head.reg_max,
+                                        iou_type=self.cfg.model.head.iou_type,
+                                        fpn_strides=self.cfg.model.head.strides)
         
         self.compute_loss = ComputeLoss(num_classes=self.data_dict['nc'],
                                         ori_img_size=self.img_size,
@@ -292,6 +311,15 @@ class Trainer:
                                         reg_max=0,
                                         iou_type=self.cfg.model.head.iou_type,
                                         fpn_strides=self.cfg.model.head.strides)
+
+            self.compute_loss_ab_bhv = ComputeLoss_ab(num_classes=self.data_dict['nc_bhv'],
+                                        ori_img_size=self.img_size,
+                                        warmup_epoch=0,
+                                        use_dfl=False,
+                                        reg_max=0,
+                                        iou_type=self.cfg.model.head.iou_type,
+                                        fpn_strides=self.cfg.model.head.strides)
+
         if self.args.distill :
             if self.cfg.model.type in ['YOLOv6n','YOLOv6s']:
                 Loss_distill_func = ComputeLoss_distill_ns
@@ -319,16 +347,19 @@ class Trainer:
             self.train_loader, self.val_loader = self.get_data_loader(self.args, self.cfg, self.data_dict)
             self.train_loader_face, self.val_loader_face = \
                 self.get_data_loader(self.args, self.cfg, self.data_dict, suffix='_face')
+            self.train_loader_bhv, self.val_loader_bhv = \
+                self.get_data_loader(self.args, self.cfg, self.data_dict, suffix='_bhv')
         self.model.train()
         if self.rank != -1:
             self.train_loader.sampler.set_epoch(self.epoch)
             self.train_loader_face.sampler.set_epoch(self.epoch)
+            self.train_loader_bhv.sampler.set_epoch(self.epoch)
         self.mean_loss = torch.zeros(self.loss_num, device=self.device)
         self.optimizer.zero_grad()
 
         LOGGER.info(('\n' + '%10s' * (self.loss_num + 1)) % (*self.loss_info,))
         # self.pbar = enumerate(self.train_loader)
-        self.pbar = enumerate(zip(self.train_loader, self.train_loader_face))
+        self.pbar = enumerate(zip(self.train_loader, self.train_loader_face, self.train_loader_bhv))
         if self.main_process:
             self.pbar = tqdm(self.pbar, total=self.max_stepnum, ncols=NCOLS, bar_format='{l_bar}{bar:10}{r_bar}{bar:-10b}')
 
@@ -372,22 +403,26 @@ class Trainer:
     def get_data_loader(args, cfg, data_dict, suffix=''):
         train_path, val_path = data_dict['train' + suffix], data_dict['val' + suffix]
         # check data
-        nc = int(data_dict['nc'])
-        class_names = data_dict['names']
+        if suffix == '_bhv':
+            nc = int(data_dict['nc_bhv'])
+            class_names = data_dict['names_bhv']
+        else:
+            nc = int(data_dict['nc'])
+            class_names = data_dict['names']
         assert len(class_names) == nc, f'the length of class names does not match the number of classes defined'
         grid_size = max(int(max(cfg.model.head.strides)), 32)
         # create train dataloader
         train_loader = create_dataloader(train_path, args.img_size, args.batch_size // args.world_size, grid_size,
                                          hyp=dict(cfg.data_aug), augment=True, rect=False, rank=args.local_rank,
                                          workers=args.workers, shuffle=True, check_images=args.check_images,
-                                         check_labels=args.check_labels, data_dict=data_dict, task='train')[0]
+                                         check_labels=args.check_labels, data_dict=data_dict, task='train', suffix=suffix)[0]
         # create val dataloader
         val_loader = None
         if args.rank in [-1, 0]:
             val_loader = create_dataloader(val_path, args.img_size, args.batch_size // args.world_size * 2, grid_size,
                                            hyp=dict(cfg.data_aug), rect=True, rank=-1, pad=0.5,
                                            workers=args.workers, check_images=args.check_images,
-                                           check_labels=args.check_labels, data_dict=data_dict, task='val')[0]
+                                           check_labels=args.check_labels, data_dict=data_dict, task='val', suffix=suffix)[0]
 
         return train_loader, val_loader
 
@@ -397,8 +432,8 @@ class Trainer:
         targets = batch_data[1].to(device)
         return images, targets
 
-    def get_model(self, args, cfg, nc, device):
-        model = build_model(cfg, nc, device, fuse_ab=self.args.fuse_ab, distill_ns=self.distill_ns)
+    def get_model(self, args, cfg, nc, nc_bhv, device):
+        model = build_model(cfg, nc, nc_bhv, device, fuse_ab=self.args.fuse_ab, distill_ns=self.distill_ns)
         weights = cfg.model.pretrained
         if weights:  # finetune if pretrained model is set
             if not os.path.exists(weights):
@@ -535,7 +570,7 @@ class Trainer:
                 if box_score < vis_conf or bbox_idx > vis_max_box_num:
                     break
                 cv2.rectangle(ori_img, (x_tl, y_tl), (x_br, y_br), tuple([int(x) for x in self.color[cls_id]]), thickness=1)
-                cv2.putText(ori_img, f"{self.data_dict['names'][cls_id]}: {box_score:.2f}", (x_tl, y_tl - 10), cv2.FONT_HERSHEY_COMPLEX, 0.5, tuple([int(x) for x in self.color[cls_id]]), thickness=1)
+                cv2.putText(ori_img, f"{self.data_dict['names_bhv'][cls_id]}: {box_score:.2f}", (x_tl, y_tl - 10), cv2.FONT_HERSHEY_COMPLEX, 0.5, tuple([int(x) for x in self.color[cls_id]]), thickness=1)
             self.vis_imgs_list.append(torch.from_numpy(ori_img[:, :, ::-1].copy()))
 
 

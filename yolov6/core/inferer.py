@@ -32,7 +32,7 @@ class Inferer:
         self.device = torch.device(f'cuda:{device}' if cuda else 'cpu')
         self.model = DetectBackend(weights, device=self.device)
         self.stride = self.model.stride
-        self.class_names = load_yaml(yaml)['names']
+        self.class_names = load_yaml(yaml)['names_bhv']
         self.img_size = self.check_img_size(self.img_size, s=self.stride)  # check image size
         self.half = half
 
@@ -76,8 +76,8 @@ class Inferer:
                 img = img[None]
                 # expand for batch dim
             t1 = time.time()
-            pred_results, pred_results_face = self.model(img)
-            det = non_max_suppression_face(pred_results_face, conf_thres, iou_thres, classes, agnostic_nms, max_det=max_det)[0]
+            pred_results, pred_results_face, pred_results_bhv = self.model(img)
+            det = non_max_suppression_face(pred_results_bhv, conf_thres, iou_thres, classes, agnostic_nms, max_det=max_det)[0]
             t2 = time.time()
 
             if self.webcam:

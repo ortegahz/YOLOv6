@@ -44,7 +44,12 @@ class Model(nn.Module):
     def forward(self, x):
         export_mode = torch.onnx.is_in_onnx_export()
 
-        xb = self.backbone_bhv(x)
+        if export_mode:
+            xbi = F.interpolate(x, size=640, mode='bilinear')
+        else:
+            xbi = x
+
+        xb = self.backbone_bhv(xbi)
         xb = self.neck_bhv(xb)
         xf = self.backbone_face(x)
         xf = self.neck_face(xf)

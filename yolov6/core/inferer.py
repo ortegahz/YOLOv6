@@ -194,6 +194,8 @@ class Inferer:
         '''Rescale the output to the original image shape'''
         ratio = min(ori_shape[0] / target_shape[0], ori_shape[1] / target_shape[1])
         padding = (ori_shape[1] - target_shape[1] * ratio) / 2, (ori_shape[0] - target_shape[0] * ratio) / 2
+        # ratio = 0.5
+        # padding = (0.0, 0.0)
 
         boxes[:, [0, 2]] -= padding[0]
         boxes[:, [1, 3]] -= padding[1]

@@ -16,6 +16,7 @@ python tools/infer.py --weights /home/manu/tmp/ofc_scut_e100/weights/best_ckpt.p
 python tools/infer.py --weights /home/manu/tmp/ofc_scut_e400/weights/best_ckpt.pt --source /home/manu/nfs/tmp/install/rknn_yolov5_demo_Linux/model/sylgd_rp.bmp --yaml data/scut_kps.yaml --conf 0.4 --name scut --img-size 640 640 --hide-labels
 python tools/infer.py --weights /home/manu/tmp/exp9/weights/best_ckpt.pt --source /media/manu/samsung/pics/students.bmp --yaml data/scut_wdf.yaml --conf 0.4 --name scut
 python tools/infer.py --weights /home/manu/tmp/exp25/weights/best_ckpt.pt --yaml data/scut_wdf_bhv.yaml --conf 0.4 --name bhv --source /media/manu/samsung/videos/at2021/mp4/Video1年级.mp4 --view-img --img-size 1280 1280
+python tools/infer.py --weights /home/manu/tmp/exp25/weights/best_ckpt.pt --yaml data/scut_wdf_bhv.yaml --conf 0.4 --name bhv --source /media/manu/samsung/pics/4.jpg --view-img --img-size 480 480
 
 # train
 [official] python -m torch.distributed.launch --nproc_per_node 8 tools/train.py --batch 64 --conf configs/yolov6s_finetune.py --data data/WIDER_FACE.yaml --fuse_ab --device 0,1,2,3,4,5,6,7
@@ -51,5 +52,5 @@ tensorboard --logdir runs/train/exp24 --bind_all
 http://192.168.3.10:6006/
 
 # export
-python ./deploy/ONNX/export_onnx.py --weights /home/manu/tmp/exp9/weights/best_ckpt.pt --img 640 --batch 1 --simplify
-cp /home/manu/tmp/exp9/weights/best_ckpt.onnx /home/manu/tmp -rvf
+python ./deploy/ONNX/export_onnx.py --weights /home/manu/tmp/exp25/weights/best_ckpt.pt --img 1280 --batch 1 --simplify
+cp /home/manu/tmp/exp25/weights/best_ckpt.onnx /home/manu/tmp -rvf

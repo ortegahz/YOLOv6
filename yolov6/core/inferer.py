@@ -120,6 +120,7 @@ class Inferer:
             if len(det):
                 for detection in reversed(det):
                     xyxy, conf, cls, lmdks = detection[:4], detection[4], detection[5], detection[6:]
+                    print(f'cls {self.class_names[int(cls)]} with conf {conf}\n')
                     if save_txt:  # Write to file
                         xywh = (self.box_convert(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
                         line = (cls, xywh, lmdks, conf)

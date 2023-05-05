@@ -55,8 +55,8 @@ def new_dirs(args):
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dir_in_root', default='/media/sdb/data/custom_behavior', type=str)
-    parser.add_argument('--dir_out_root', default='/media/sdb/data/custom_behavior_kps', type=str)
+    parser.add_argument('--dir_in_root', default='/media/sdb/data/custom_stand', type=str)
+    parser.add_argument('--dir_out_root', default='/media/sdb/data/custom_stand_kps', type=str)
     parser.add_argument('--subsets', nargs='*', default=['train', 'val'], type=str)
     return parser.parse_args()
 

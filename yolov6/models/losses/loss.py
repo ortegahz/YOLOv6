@@ -147,6 +147,7 @@ class ComputeLoss:
         # repulsion loss
         loss_repGT, loss_repBox = repulsion_loss(
             pred_bboxes, target_bboxes, fg_mask, sigma_repgt=0.9, sigma_repbox=0, pnms=0, gtnms=0)
+        # loss_repGT, loss_repBox = pred_distri.sum() * 0., pred_distri.sum() * 0.
         
         # Landmarks Loss
         loss_landmark = self.landmarks_loss(pred_ldmks, target_ldmks, fg_mask)

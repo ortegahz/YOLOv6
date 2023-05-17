@@ -12,6 +12,7 @@ python tools/infer.py --weights /home/manu/tmp/ofc_scut_e100/weights/best_ckpt.p
 python tools/infer.py --weights /home/manu/tmp/ofc_scut_e100/weights/best_ckpt.pt --source /home/manu/nfs/tmp/install/rknn_yolov5_demo_Linux/model/sylgd_rp.bmp --yaml data/scut_kps.yaml --conf 0.4 --name scut --img-size 1280 1280 --hide-labels
 python tools/infer.py --weights /home/manu/tmp/ofc_scut_e400/weights/best_ckpt.pt --source /home/manu/nfs/tmp/install/rknn_yolov5_demo_Linux/model/sylgd_rp.bmp --yaml data/scut_kps.yaml --conf 0.4 --name scut --img-size 640 640 --hide-labels
 python tools/infer.py --weights /home/manu/tmp/ofc_scut_e400/weights/best_ckpt.pt --source /media/manu/samsung/pics/students.bmp --yaml data/scut_kps.yaml --conf 0.4 --name scut
+python tools/infer.py --weights /home/manu/tmp/ofc_scut_e400/weights/best_ckpt.pt --yaml data/scut_kps.yaml --conf 0.6 --name scut --source /home/manu/tmp/vlc-record-2023-05-16-11h08m28s-rtsp___192.168.30.155_554_av_live-.mp4 --view-img --img-size 1280 1280 --hide-labels
 
 # train
 [official] python -m torch.distributed.launch --nproc_per_node 8 tools/train.py --batch 64 --conf configs/yolov6s_finetune.py --data data/WIDER_FACE.yaml --fuse_ab --device 0,1,2,3,4,5,6,7

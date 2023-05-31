@@ -10,4 +10,4 @@ val: /media/sdb/data/custom_head_kps/images/val  # 3226 images
 is_coco: False
 # Classes
 nc: 1  # number of classes
-names: ['face']  # class names
+names: ['head']  # class names

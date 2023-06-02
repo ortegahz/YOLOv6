@@ -20,6 +20,8 @@ python tools/infer.py --weights /home/manu/tmp/yolov6n_acfree_opt/weights/best_c
 
 python tools/infer.py --weights /home/manu/tmp/yolov6n_wdf_opt/weights/best_ckpt.pt --source /media/manu/kingstoo/widerface/data/retinaface/train/images/scut/PartA_00033.jpg --yaml data/wdf.yaml --conf-thres 0.4 --img-size 640 640 --hide-labels
 
+python tools/infer.py --weights /home/manu/tmp/yolov6n_scut_opt_8gpu_efo_bs32_s1280/weights/best_ckpt.pt --yaml data/scut.yaml --conf 0.6 --name scut --source /home/manu/tmp/教四-504A_20230526095514-20230526100603_1.mp4 --view-img --img-size 1280 1280 --hide-labels
+
 # data
 /media/manu-pc/tmp <--> /home/manu/tmp
 

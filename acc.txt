@@ -1,0 +1,16 @@
+[nn_ft_b64_nab_s640]
+ap0.237
+
+[nn6_ft_b64_nab_s1280]
+Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.403
+Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 0.708
+Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=100 ] = 0.395
+Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.315
+Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.672
+Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.955
+Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=  1 ] = 0.056
+Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 10 ] = 0.346
+Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.499
+Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.430
+Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.732
+Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.967

@@ -22,7 +22,7 @@ python tools/infer.py --weights /home/manu/tmp/exp6/weights/best_ckpt.pt --yaml 
 python tools/infer.py --weights /home/manu/tmp/exp6/weights/best_ckpt.pt --yaml data/phone.yaml --conf 0.4 --name phone --webcam --webcam-addr rtsp://192.168.1.185:554/ch0_1 --view-img --img-size 640 640
 
 # test
-python tools/eval.py --data data/phone.yaml  --weights runs/train/exp3/weights/best_ckpt.pt --task val --device 0 --img-size 1280
+python tools/eval.py --data data/phone.yaml  --weights runs/train/exp6/weights/best_ckpt.pt --task val --device 0 --img-size 1280
 
 # tensorboard
 tensorboard --logdir runs/train/exp3 --bind_all

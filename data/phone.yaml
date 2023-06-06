@@ -1,7 +1,7 @@
 # Please insure that your custom_dataset are put in same parent dir with YOLOv6_DIR
 
-train: /media/sdb/data/custom_phone/images/train
-val: /media/sdb/data/custom_phone/images/val
+train: /media/sdb/data/custom_phone_plus/images/train
+val: /media/sdb/data/custom_phone_plus/images/val
 
 # whether it is coco dataset, only coco dataset should be set to True.
 is_coco: False

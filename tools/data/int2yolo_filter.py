@@ -45,7 +45,7 @@ def process(args):
                 cnt = 0
                 for line in lines:
                     l, xc, yc, w, h = line.split()
-                    if l == '0':
+                    if int(l) == args.pick_id:
                         f.writelines(f'0 {xc} {yc} {w} {h}\n')
                         cnt += 1
 
@@ -60,7 +60,8 @@ def set_logging():
 
 
 def make_dirs(args):
-    shutil.rmtree(args.dir_root_out)
+    if os.path.exists(args.dir_root_out):
+        shutil.rmtree(args.dir_root_out)
     for subset in ['train', 'val']:
         os.makedirs(os.path.join(args.dir_root_out, 'labels', subset), exist_ok=True)
         os.makedirs(os.path.join(args.dir_root_out, 'images', subset), exist_ok=True)
@@ -70,8 +71,9 @@ def parse_ars():
     set_logging()
     parser = argparse.ArgumentParser()
     parser.add_argument('--dir_imgs_in', default='/media/manu/kingstoo/bhv_phone/round_1/imgs', type=str)
-    parser.add_argument('--dir_root_out', default='/media/manu/kingstoo/yolov5/custom_phone', type=str)
+    parser.add_argument('--dir_root_out', default='/media/manu/kingstoo/yolov5/custom_play', type=str)
     parser.add_argument('--rate_val', default=5000 / 118287., type=float)
+    parser.add_argument('--pick_id', default=1, type=int)
     return parser.parse_args()
 
 

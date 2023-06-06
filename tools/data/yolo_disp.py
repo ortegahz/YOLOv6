@@ -57,7 +57,7 @@ def set_logging():
 def parse_ars():
     set_logging()
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dir_root', default='/media/manu/kingstoo/yolov5/custom_phone_plus', type=str)
+    parser.add_argument('--dir_root', default='/media/manu/kingstoo/yolov5/custom_play', type=str)
     parser.add_argument('--subsets', nargs='+', default=['train', 'val'], type=str)
     parser.add_argument('--show', action='store_true')
     return parser.parse_args()

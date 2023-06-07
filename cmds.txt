@@ -14,21 +14,29 @@ python tools/data/int_disp.py --show
 
 python -m torch.distributed.launch --nproc_per_node 8 tools/train.py --batch 64 --conf configs/yolov6n_finetune.py --data data/phone.yaml --device 0,1,2,3,4,5,6,7
 
-screen python -m torch.distributed.launch --nproc_per_node 8 tools/train.py --batch 64 --conf configs/yolov6n6_finetune.py --data data/phone.yaml --device 0,1,2,3,4,5,6,7 --img-size 1280
+screen python -m torch.distributed.launch --nproc_per_node 8 tools/train.py --batch 64 --conf configs/yolov6n6_finetune.py --data data/phone.yaml --device 0,1,2,3,4,5,6,7 --img-size 1280`
 
 python -m torch.distributed.launch --nproc_per_node 8 tools/train.py --batch 64 --conf configs/yolov6n6_finetune.py --data data/play.yaml --device 0,1,2,3,4,5,6,7 --img-size 1280
+
+screen python -m torch.distributed.launch --nproc_per_node 8 tools/train.py --batch 32 --conf configs/yolov6s6_finetune.py --data data/play.yaml --device 0,1,2,3,4,5,6,7 --img-size 1280
 
 [official sd] python -m torch.distributed.launch --nproc_per_node 8 tools/train.py --batch 256 --conf configs/yolov6s_finetune.py --data data/dataset.yaml --distill --teacher_model_path your_model_path --device 0,1,2,3,4,5,6,7
 
 screen python -m torch.distributed.launch --nproc_per_node 8 tools/train.py --batch 64 --conf configs/yolov6n6_finetune.py --data data/phone.yaml --distill --teacher_model_path runs/train/exp6/weights/best_ckpt.pt --device 0,1,2,3,4,5,6,7 --img-size 1280
 
 # infer
-python tools/infer.py --weights /home/manu/tmp/exp12/weights/best_ckpt.pt --yaml data/phone.yaml --conf 0.4 --name phone --source /media/manu/kingstoo/tmp/20230605-10.20.164.67.mp4 --view-img --img-size 1280 1280 --hide-labels
+python tools/infer.py --weights /home/manu/tmp/exp12/weights/best_ckpt.pt --yaml data/phone.yaml --conf 0.4 --name phone --source /media/manu/samsung/videos/at2021/mp4/Video1年级.mp4 --view-img --img-size 1280 1280 --hide-labels
+
+python tools/infer.py --weights /home/manu/tmp/exp13/weights/best_ckpt.pt --yaml data/play.yaml --conf 0.4 --name phone --source /media/manu/samsung/videos/at2021/mp4/Video1年级.mp4 --view-img --img-size 1280 1280 --hide-labels
+python tools/infer.py --weights /home/manu/tmp/exp13/weights/best_ckpt.pt --yaml data/play.yaml --conf 0.4 --name phone --source /media/manu/kingstoo/tmp/20230605-10.20.164.67.mp4 --view-img --img-size 1280 1280 --hide-labels
+
 python tools/infer.py --weights /home/manu/tmp/nn6_ft_b64_nab_s1280_dfl/weights/best_ckpt.pt --yaml data/phone.yaml --conf 0.4 --name phone --webcam --webcam-addr rtsp://192.168.1.185:554/ch0_1 --view-img --img-size 1280 1280
 
 # test
 python tools/eval.py --data data/play.yaml  --weights runs/train/exp13/weights/best_ckpt.pt --task val --device 0 --img-size 1280
 
+python tools/eval.py --data data/play.yaml  --weights runs/train/exp16/weights/best_ckpt.pt --task val --device 0 --img-size 1280
+
 # tensorboard
-tensorboard --logdir runs/train/exp12 --bind_all
+tensorboard --logdir runs/train/exp16 --bind_all
 http://192.168.3.10:6006/

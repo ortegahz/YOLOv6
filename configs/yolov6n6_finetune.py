@@ -1,7 +1,7 @@
 # YOLOv6n model
 model = dict(
     type='YOLOv6n6',
-    pretrained='weights/yolov6n6.pt',
+    pretrained='/media/manu-pc/tmp/yolov6n6.pt',
     depth_multiple=0.33,
     width_multiple=0.25,
     backbone=dict(

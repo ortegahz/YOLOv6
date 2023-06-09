@@ -67,6 +67,19 @@ class Inferer:
 
         LOGGER.info("Switch model to deploy modality.")
 
+    def infer_custom(self, img_src, conf_thres, iou_thres, classes, agnostic_nms, max_det):
+        img, img_src = self.process_image(img_src, self.img_size, self.stride, self.half)
+        img = img.to(self.device)
+        if len(img.shape) == 3:
+            img = img[None]
+            # expand for batch dim
+        pred_results = self.model(img)
+        det = non_max_suppression(pred_results, conf_thres, iou_thres, classes, agnostic_nms, max_det=max_det)[0]
+        if len(det):
+            det[:, :4] = self.rescale(img.shape[2:], det[:, :4], img_src.shape).round()
+
+        return det
+
     def infer(self, conf_thres, iou_thres, classes, agnostic_nms, max_det, save_dir, save_txt, save_img, hide_labels, hide_conf, view_img=True):
         ''' Model Inference and results visualization '''
         vid_path, vid_writer, windows = None, None, []

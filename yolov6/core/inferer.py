@@ -14,7 +14,7 @@ from PIL import ImageFont
 from collections import deque
 
 from yolov6.utils.events import LOGGER, load_yaml
-from yolov6.layers.common import DetectBackend
+from yolov6.layers.common import DetectBackend, DetectBackendPlus
 from yolov6.data.data_augment import letterbox
 from yolov6.data.datasets import LoadData
 from yolov6.utils.nms import non_max_suppression
@@ -30,7 +30,8 @@ class Inferer:
         self.img_size = img_size
         cuda = self.device != 'cpu' and torch.cuda.is_available()
         self.device = torch.device(f'cuda:{device}' if cuda else 'cpu')
-        self.model = DetectBackend(weights, device=self.device)
+        # self.model = DetectBackend(weights, device=self.device)
+        self.model = DetectBackendPlus(weights, device=self.device)
         self.stride = self.model.stride
         self.class_names = load_yaml(yaml)['names']
         self.img_size = self.check_img_size(self.img_size, s=self.stride)  # check image size

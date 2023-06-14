@@ -2,6 +2,7 @@
 # -*- coding:utf-8 -*-
 import os
 import warnings
+import pickle
 import numpy as np
 from pathlib import Path
 import torch
@@ -9,6 +10,7 @@ import torch.nn as nn
 import torch.nn.init as init
 from torch.nn.parameter import Parameter
 from yolov6.utils.general import download_ckpt
+from yolov6.utils.torch_utils import fuse_model
 
 
 activation_table = {'relu':nn.ReLU(),
@@ -546,6 +548,38 @@ class LinearAddBlock(nn.Module):
             out += self.scale_identity(inputs)
         out = self.relu(self.se(self.bn(out)))
         return out
+
+
+class DetectBackendPlus(nn.Module):
+    def __init__(self, weights='yolov6s.pt', device=None, dnn=True):
+        super().__init__()
+        if not os.path.exists(weights):
+            download_ckpt(weights) # try to download model from github automatically.
+        assert isinstance(weights, str) and Path(weights).suffix == '.pt', f'{Path(weights).suffix} format is not supported.'
+        # from yolov6.utils.checkpoint import load_checkpoint
+        # model = load_checkpoint(weights, map_location=device)
+        model = self.get_model(1, device)
+        resume_state_dict = torch.load(weights)
+        model.load_state_dict(resume_state_dict, strict=True)  # load
+        for p in model.parameters():
+            p.requires_grad = False
+        model = model.float()
+        model = fuse_model(model).eval()
+        stride = int(model.stride.max())
+        self.__dict__.update(locals())  # assign all variables to self
+
+    def get_model(self, nc, device):
+        from yolov6.models.yolo import build_model
+        from yolov6.utils.events import LOGGER
+        model = build_model(nc, device, fuse_ab=False, distill_ns=False)
+        LOGGER.info('Model: {}'.format(model))
+        return model
+
+    def forward(self, im, val=False):
+        y, _ = self.model(im)
+        if isinstance(y, np.ndarray):
+            y = torch.tensor(y, device=self.device)
+        return y
 
 
 class DetectBackend(nn.Module):

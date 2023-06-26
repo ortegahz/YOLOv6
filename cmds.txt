@@ -13,6 +13,8 @@ screen python -m torch.distributed.launch --nproc_per_node 8 tools/train.py --ba
 # infer
 python tools/infer.py --weights /home/manu/tmp/nn6_ft_b32_nab_s1280/weights/best_ckpt.pt --yaml data/head.yaml --conf 0.4 --name head --source /media/manu/kingstoo/tmp/sucai --img-size 1280 1280 --hide-labels
 
+python tools/infer.py --weights /home/manu/tmp/nn6_ft_b32_nab_s1280/weights/best_ckpt.pt --yaml data/head.yaml --conf 0.4 --name head --source /media/manu/kingstoo/tmp/20230605-10.20.164.67.mp4 --img-size 1280 1280 --hide-labels --view-img
+
 # test
 python tools/eval.py --data data/head.yaml  --weights runs/train/exp2/weights/best_ckpt.pt --task val --device 0 --img-size 1280
 

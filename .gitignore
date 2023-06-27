@@ -117,3 +117,5 @@ venv.bak/
 *.engine
 
 \.idea/
+
+=1\.10\.0

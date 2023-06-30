@@ -4,6 +4,7 @@ import os
 import cv2
 import time
 import math
+import copy
 import torch
 import numpy as np
 import os.path as osp
@@ -76,10 +77,11 @@ class Inferer:
             # expand for batch dim
         pred_results = self.model(img)
         det = non_max_suppression(pred_results, conf_thres, iou_thres, classes, agnostic_nms, max_det=max_det)[0]
+        det_unrs = copy.deepcopy(det)
         if len(det):
             det[:, :4] = self.rescale(img.shape[2:], det[:, :4], img_src.shape).round()
 
-        return det
+        return det, det_unrs, pred_results
 
 
     def infer(self, conf_thres, iou_thres, classes, agnostic_nms, max_det, save_dir, save_txt, save_img, hide_labels, hide_conf, view_img=True):

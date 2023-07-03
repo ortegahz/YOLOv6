@@ -42,15 +42,9 @@ def process(args):
                 lines = f.readlines()
 
             with open(path_label_out, 'w') as f:
-                cnt = 0
                 for line in lines:
                     l, xc, yc, w, h = line.split()
-                    if int(l) == args.pick_id:
-                        f.writelines(f'0 {xc} {yc} {w} {h}\n')
-                        cnt += 1
-
-            if cnt == 0:
-                os.remove(path_label_out)
+                    f.writelines(f'0 {xc} {yc} {w} {h}\n')
 
 
 
@@ -70,10 +64,9 @@ def make_dirs(args):
 def parse_ars():
     set_logging()
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dir_imgs_in', default='/media/manu/kingstoo/bhv_phone/round_1/imgs', type=str)
-    parser.add_argument('--dir_root_out', default='/media/manu/kingstoo/yolov5/custom_play', type=str)
+    parser.add_argument('--dir_imgs_in', default='/media/manu/kingstoo/yolov5/custom_head_v1/merge/imgs', type=str)
+    parser.add_argument('--dir_root_out', default='/media/manu/kingstoo/yolov5/custom_head_v1_f', type=str)
     parser.add_argument('--rate_val', default=5000 / 118287., type=float)
-    parser.add_argument('--pick_id', default=1, type=int)
     return parser.parse_args()
 
 

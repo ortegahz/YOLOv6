@@ -126,7 +126,12 @@ class Detect(nn.Module):
                     reg_dist_list.append(reg_output.reshape([b, 4, l]))
 
             if self.export:
-                return tuple(torch.cat([cls, reg], 1) for cls, reg in zip(cls_score_list, reg_dist_list))
+                export_outputs = tuple(torch.cat([cls, reg], 1) for cls, reg in zip(cls_score_list, reg_dist_list))
+                # for exp_idx, export_output in enumerate(export_outputs):
+                #     np.savetxt(f'/home/manu/tmp/pytorch_outputs_export_{exp_idx}.txt',
+                #                export_output.detach().cpu().numpy().flatten(),
+                #                fmt="%f", delimiter="\n")
+                return export_outputs
 
             cls_score_list = torch.cat(cls_score_list, axis=-1).permute(0, 2, 1)
             reg_dist_list = torch.cat(reg_dist_list, axis=-1).permute(0, 2, 1)

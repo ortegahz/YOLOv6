@@ -11,7 +11,7 @@ screen python -m torch.distributed.launch --nproc_per_node 8 tools/train.py --ba
 screen python -m torch.distributed.launch --nproc_per_node 8 tools/train.py --batch 16 --conf configs/yolov6s6_finetune.py --data data/head.yaml --device 0,1,2,3,4,5,6,7 --img-size 1280
 
 # infer
-python tools/infer.py --weights /home/manu/tmp/nn6_ft_b32_nab_s1280/weights/best_ckpt.pt --yaml data/head.yaml --conf 0.4 --name head --source /home/manu/nfs/tmp/install/rknn_yolov5_demo/model/sylgd_rp.bmp --img-size 1280 1280
+python tools/infer.py --weights /home/manu/tmp/nn6_ft_b32_nab_s1280_dv1r/weights/best_ckpt.pt --yaml data/head.yaml --conf 0.4 --name head --source /media/manu/samsung/pics/sylgd_rp.bmp --img-size 1280 1280
 
 python tools/infer.py --weights /home/manu/tmp/nn6_ft_b32_nab_s1280_dv1r/weights/best_ckpt.pt --yaml data/head.yaml --conf 0.4 --name head --source /media/manu/kingstoo/tmp/vlc-record-2023-05-16-11h08m28s-rtsp___192.168.30.155_554_av_live-.mp4 --img-size 1280 1280 --hide-labels --view-img
 

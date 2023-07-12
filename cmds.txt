@@ -19,8 +19,10 @@ python tools/infer.py --weights /home/manu/tmp/nn6_ft_b32_nab_s1280_dv1r/weights
 python tools/eval.py --data data/head.yaml  --weights runs/train/exp/weights/best_ckpt.pt --task val --device 0 --img-size 1280
 
 # export
-python ./deploy/ONNX/export_onnx.py --weights /home/manu/tmp/nn6_ft_b32_nab_s1280/weights/best_ckpt.pt --img 1280 --batch 1 --simplify
-cp /home/manu/tmp/nn6_ft_b32_nab_s1280/weights/best_ckpt.onnx /home/manu/tmp/acfree.onnx -rvf
+python ./deploy/ONNX/export_onnx.py --weights /home/manu/tmp/nn6_ft_b32_nab_s1280_dv1r/weights/best_ckpt.pt --img 1280 --batch 1 --simplify
+cp /home/manu/tmp/nn6_ft_b32_nab_s1280_dv1r/weights/best_ckpt.onnx /home/manu/tmp/acfree.onnx -rvf
+
+python ./deploy/ONNX/export_onnx_nnie.py --weights /home/manu/tmp/nn6_ft_b32_nab_s1280_dv1r/weights/best_ckpt.pt --img 1280 --batch 1 --simplify && cp /home/manu/tmp/nn6_ft_b32_nab_s1280_dv1r/weights/best_ckpt.onnx /home/manu/tmp/acfree.onnx -rvf
 
 # tensorboard
 tensorboard --logdir runs/train/exp --bind_all

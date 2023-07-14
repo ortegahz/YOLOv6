@@ -121,3 +121,13 @@ venv.bak/
 =1\.10\.0
 
 *.dot
+
+deploy/NNIE/mapper_param/
+
+deploy/NNIE/mapper_quant/
+
+deploy/NNIE/ruyi_float/
+
+deploy/NNIE/RUNTIME\.txt
+
+deploy/NNIE/netmem_info\.data

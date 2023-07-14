@@ -1,5 +1,1 @@
-/media/manu/samsung/Hi3519AV100R001C02SPC002/SVP_PC/HiSVP_PC_V1.2.0.1_B040/software/sample/data/detection/images/ref_yolo/000005.png
-/media/manu/samsung/Hi3519AV100R001C02SPC002/SVP_PC/HiSVP_PC_V1.2.0.1_B040/software/sample/data/detection/images/ref_yolo/000011.png
-/media/manu/samsung/Hi3519AV100R001C02SPC002/SVP_PC/HiSVP_PC_V1.2.0.1_B040/software/sample/data/detection/images/ref_yolo/000017.png
-/media/manu/samsung/Hi3519AV100R001C02SPC002/SVP_PC/HiSVP_PC_V1.2.0.1_B040/software/sample/data/detection/images/ref_yolo/000019.png
-/media/manu/samsung/Hi3519AV100R001C02SPC002/SVP_PC/HiSVP_PC_V1.2.0.1_B040/software/sample/data/detection/images/ref_yolo/000031.png
+/media/manu/samsung/pics/sylgd_rp.bmp

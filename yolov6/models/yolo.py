@@ -17,11 +17,11 @@ class Model(nn.Module):
     The default parts are EfficientRep Backbone, Rep-PAN and
     Efficient Decoupled Head.
     '''
-    def __init__(self, config, channels=3, num_classes=None, fuse_ab=False, distill_ns=False):  # model, input channels, number of classes
+    def __init__(self, config, channels=3, num_classes=None, fuse_ab=False, distill_ns=False, nnie=False):  # model, input channels, number of classes
         super().__init__()
         # Build network
         num_layers = config.model.head.num_layers
-        self.backbone, self.neck, self.detect = build_network(config, channels, num_classes, num_layers, fuse_ab=fuse_ab, distill_ns=distill_ns)
+        self.backbone, self.neck, self.detect = build_network(config, channels, num_classes, num_layers, fuse_ab=fuse_ab, distill_ns=distill_ns, nnie=nnie)
 
         # Init Detect head
         self.stride = self.detect.stride
@@ -52,7 +52,7 @@ def make_divisible(x, divisor):
     return math.ceil(x / divisor) * divisor
 
 
-def build_network(config, channels, num_classes, num_layers, fuse_ab=False, distill_ns=False):
+def build_network(config, channels, num_classes, num_layers, fuse_ab=False, distill_ns=False, nnie=False):
     depth_mul = config.model.depth_multiple
     width_mul = config.model.width_multiple
     num_repeat_backbone = config.model.backbone.num_repeats
@@ -125,6 +125,11 @@ def build_network(config, channels, num_classes, num_layers, fuse_ab=False, dist
         head_layers = build_effidehead_layer(channels_list, 3, num_classes, reg_max=reg_max, num_layers=num_layers)
         head = Detect(num_classes, anchors_init, num_layers, head_layers=head_layers, use_dfl=use_dfl)
 
+    elif nnie:
+        from yolov6.models.effidehead import Detect, build_effidehead_layer_nnie
+        head_layers = build_effidehead_layer_nnie(channels_list, 1, num_classes, reg_max=reg_max, num_layers=num_layers)
+        head = Detect(num_classes, num_layers, head_layers=head_layers, use_dfl=use_dfl)
+
     else:
         from yolov6.models.effidehead import Detect, build_effidehead_layer
         head_layers = build_effidehead_layer(channels_list, 1, num_classes, reg_max=reg_max, num_layers=num_layers)
@@ -133,6 +138,7 @@ def build_network(config, channels, num_classes, num_layers, fuse_ab=False, dist
     return backbone, neck, head
 
 
-def build_model(cfg, num_classes, device, fuse_ab=False, distill_ns=False):
-    model = Model(cfg, channels=3, num_classes=num_classes, fuse_ab=fuse_ab, distill_ns=distill_ns).to(device)
+def build_model(cfg, num_classes, device, fuse_ab=False, distill_ns=False, nnie=False):
+    model = Model(cfg, channels=3, num_classes=num_classes,
+                  fuse_ab=fuse_ab, distill_ns=distill_ns, nnie=nnie).to(device)
     return model

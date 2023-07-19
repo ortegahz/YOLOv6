@@ -9,6 +9,7 @@ from yolov6.utils.general import dist2bbox
 
 class Detect(nn.Module):
     export = False
+    export_nnie = False
     '''Efficient Decoupled Head
     With hardware-aware degisn, the decoupled head is optimized with
     hybridchannels methods.
@@ -116,14 +117,25 @@ class Detect(nn.Module):
                 #            reg_output.detach().cpu().numpy().flatten(),
                 #            fmt="%f", delimiter="\n")
 
-                cls_output = torch.sigmoid(cls_output)
+                cls_output_sigmoid = torch.sigmoid(cls_output)
 
-                if self.export:
+                if self.export_nnie:
                     cls_score_list.append(cls_output)
                     reg_dist_list.append(reg_output)
+                elif self.export:
+                    cls_score_list.append(cls_output_sigmoid)
+                    reg_dist_list.append(reg_output)
                 else:
-                    cls_score_list.append(cls_output.reshape([b, self.nc, l]))
+                    cls_score_list.append(cls_output_sigmoid.reshape([b, self.nc, l]))
                     reg_dist_list.append(reg_output.reshape([b, 4, l]))
+
+            if self.export_nnie:
+                export_outputs = []
+                for item in cls_score_list:
+                    export_outputs.append(item)
+                for item in reg_dist_list:
+                    export_outputs.append(item)
+                return tuple(export_outputs)
 
             if self.export:
                 export_outputs = tuple(torch.cat([cls, reg], 1) for cls, reg in zip(cls_score_list, reg_dist_list))

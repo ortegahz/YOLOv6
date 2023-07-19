@@ -102,7 +102,8 @@ def build_network(config, channels, num_classes, num_layers, fuse_ab=False, dist
             num_repeats=num_repeat,
             block=block,
             fuse_P2=fuse_P2,
-            cspsppf=cspsppf
+            cspsppf=cspsppf,
+            nnie=nnie
         )
 
         neck = NECK(

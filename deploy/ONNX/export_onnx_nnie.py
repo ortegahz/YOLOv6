@@ -46,7 +46,7 @@ def run(args):
         elif isinstance(m, Detect):
             m.inplace = args.inplace
 
-    model.detect.export = True
+    model.detect.export_nnie = True
     model = Nnie(model)
 
     _ = model(img)  # dry run

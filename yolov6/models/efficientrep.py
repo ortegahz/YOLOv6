@@ -17,7 +17,8 @@ class EfficientRep(nn.Module):
         num_repeats=None,
         block=RepVGGBlock,
         fuse_P2=False,
-        cspsppf=False
+        cspsppf=False,
+        nnie=False
     ):
         super().__init__()
 
@@ -81,25 +82,41 @@ class EfficientRep(nn.Module):
         if cspsppf:
             channel_merge_layer = CSPSPPF if block == ConvBNSiLU else SimCSPSPPF
 
-        self.ERBlock_5 = nn.Sequential(
-            block(
-                in_channels=channels_list[3],
-                out_channels=channels_list[4],
-                kernel_size=3,
-                stride=2,
-            ),
-            RepBlock(
-                in_channels=channels_list[4],
-                out_channels=channels_list[4],
-                n=num_repeats[4],
-                block=block,
-            ),
-            channel_merge_layer(
-                in_channels=channels_list[4],
-                out_channels=channels_list[4],
-                kernel_size=5
+        if not nnie:
+            self.ERBlock_5 = nn.Sequential(
+                block(
+                    in_channels=channels_list[3],
+                    out_channels=channels_list[4],
+                    kernel_size=3,
+                    stride=2,
+                ),
+                RepBlock(
+                    in_channels=channels_list[4],
+                    out_channels=channels_list[4],
+                    n=num_repeats[4],
+                    block=block,
+                ),
+                channel_merge_layer(
+                    in_channels=channels_list[4],
+                    out_channels=channels_list[4],
+                    kernel_size=5
+                )
             )
-        )
+        else:
+            self.ERBlock_5 = nn.Sequential(
+                block(
+                    in_channels=channels_list[3],
+                    out_channels=channels_list[4],
+                    kernel_size=3,
+                    stride=2,
+                ),
+                RepBlock(
+                    in_channels=channels_list[4],
+                    out_channels=channels_list[4],
+                    n=num_repeats[4],
+                    block=block,
+                )
+            )
 
     def forward(self, x):
 

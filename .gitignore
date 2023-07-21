@@ -131,3 +131,11 @@ deploy/NNIE/ruyi_float/
 deploy/NNIE/RUNTIME\.txt
 
 deploy/NNIE/netmem_info\.data
+
+deploy/NNIE/instruction\.txt
+
+deploy/NNIE/images_U32\.bin
+
+deploy/NNIE/ibd_para\.txt
+
+deploy/NNIE/dout_nne_para\.txt

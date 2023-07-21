@@ -245,6 +245,10 @@ class RepVGGBlock(nn.Module):
     def forward(self, inputs):
         '''Forward process'''
         if hasattr(self, 'rbr_reparam'):
+            # if inputs.shape[-1] == 640:
+            #     tmp = self.rbr_reparam(inputs)
+            #     np.savetxt('/home/manu/tmp/pytorch_outputs_tmp.txt',
+            #                tmp.detach().cpu().numpy().flatten(), fmt="%f", delimiter="\n")
             return self.nonlinearity(self.se(self.rbr_reparam(inputs)))
 
         if self.rbr_identity is None:

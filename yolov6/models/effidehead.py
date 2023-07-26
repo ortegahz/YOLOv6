@@ -130,12 +130,9 @@ class Detect(nn.Module):
                     reg_dist_list.append(reg_output.reshape([b, 4, l]))
 
             if self.export_nnie:
-                export_outputs = []
-                for item in cls_score_list:
-                    export_outputs.append(item)
-                for item in reg_dist_list:
-                    export_outputs.append(item)
-                return tuple(export_outputs)
+                export_outputs = tuple(torch.cat([reg, cls], 1)
+                                       for cls, reg in zip(cls_score_list, reg_dist_list))
+                return export_outputs
 
             if self.export:
                 export_outputs = tuple(torch.cat([cls, reg], 1) for cls, reg in zip(cls_score_list, reg_dist_list))

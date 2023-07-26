@@ -112,6 +112,8 @@ class Inferer:
             assert img_ori.data.contiguous, 'Image needs to be contiguous. Please apply to input images with np.ascontiguousarray(im).'
             self.font_check()
 
+            print(f'num of boxes after nms --> {len(det)}')
+
             if len(det):
                 det[:, :4] = self.rescale(img.shape[2:], det[:, :4], img_src.shape).round()
                 for *xyxy, conf, cls in reversed(det):

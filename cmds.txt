@@ -11,6 +11,7 @@ export PKG_CONFIG_PATH=/home/manu/softwares/opencv-3.4.0/lib/pkgconfig
 nnie_mapper_12 ./data/classification/alexnet/alexnet_no_group_func.cfg
 nnie_mapper_12 data/segmentation/segnet/segnet_inst.cfg && cp data/segmentation/segnet/inst/segnet_inst.wk ~/nfs/Hi3519AV100_SDK_V2.0.0.2/smp/a53_linux/mpp/sample/svp/nnie/data/nnie_model/segmentation/ -rvf
 nnie_mapper_12 data/detection/yolov2/yolov2_inst.cfg && cp data/detection/yolov2/inst/inst_yolov2_inst.wk /home/manu/nfs/Hi3519AV100_SDK_V2.0.0.2/smp/a53_linux/mpp/sample/svp/nnie/data/nnie_model/detection -rvf
+nnie_mapper_12 ./yolov3_inst.cfg
 nnie_mapper_12 ./yolov6_func.cfg
 # map
 cd /tmp/pycharm_project_743
@@ -40,8 +41,7 @@ python tools/eval.py --data data/head.yaml  --weights runs/train/exp/weights/bes
 python tools/eval.py --data data/head.yaml  --weights /media/manu-pc/tmp/n6_ft_b64_nab_s640_dv1r_ncml_nsilu/weights/best_ckpt.pt --task val --device 0 --img-size 1280
 
 # export
-python ./deploy/ONNX/export_onnx.py --weights /home/manu/tmp/nn6_ft_b32_nab_s1280_dv1r/weights/best_ckpt.pt --img-size 1280 --batch 1 --simplify
-cp /home/manu/tmp/nn6_ft_b32_nab_s1280_dv1r/weights/best_ckpt.onnx /home/manu/tmp/acfree.onnx -rvf
+python ./deploy/ONNX/export_onnx.py --weights /home/manu/tmp/n6_ft_b64_nab_s640_dv1r_ncml_nsilu/weights/best_ckpt.pt --img-size 640 --batch 1 --simplify && cp /home/manu/tmp/n6_ft_b64_nab_s640_dv1r_ncml_nsilu/weights/best_ckpt.onnx /home/manu/tmp/acfree.onnx -rvf
 
 python ./deploy/ONNX/export_onnx_nnie.py --weights /home/manu/tmp/n6_ft_b64_nab_s640_dv1r_ncml_nsilu/weights/best_ckpt.pt --img-size 640 --batch 1 --simplify && cp /home/manu/tmp/n6_ft_b64_nab_s640_dv1r_ncml_nsilu/weights/best_ckpt.onnx /home/manu/tmp/acfree.onnx -rvf
 

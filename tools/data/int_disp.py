@@ -7,7 +7,7 @@ import cv2
 from tqdm import tqdm
 
 
-def process(args):
+def run(args):
     logging.info(args)
 
     paths_img = glob.glob(os.path.join(args.dir_imgs, '*'))
@@ -15,7 +15,7 @@ def process(args):
     n_points = 0
     for path_img in tqdm(paths_img):
         path_label = path_img.replace('.jpg', '.txt')
-        path_label = path_label.replace('imgs', 'labels')
+        path_label = path_label.replace('images', 'labels')
 
         img = cv2.imread(path_img)
         H, W, _ = img.shape
@@ -27,7 +27,8 @@ def process(args):
             for line in lines:
                 l, xc, yc, w, h = line.split()
                 l, xc, yc, w, h = int(l), float(xc), float(yc), float(w), float(h)
-                color = (0, 255, 0) if l == 0 else (0, 0, 255)
+                # 0 for auto-labels & 1 for del labels 2 & for new labels
+                color = args.colors[l]
                 p1 = (int((xc - w / 2) * W), int((yc - h / 2) * H))
                 p2 = (int((xc + w / 2) * W), int((yc + h / 2) * H))
                 cv2.rectangle(img, p1, p2, color, 2)
@@ -55,14 +56,15 @@ def set_logging():
 def parse_ars():
     set_logging()
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dir_imgs', default='/media/manu/kingstoo/yolov5/custom_head_v1/merge/imgs', type=str)
+    parser.add_argument('--dir_imgs', default='/media/manu/kingstoo/yolov5/custom_head_v2/images', type=str)
+    parser.add_argument('--colors', default=((255, 0, 0), (0, 255, 0), (0, 0, 255)))
     parser.add_argument('--show', action='store_true')
     return parser.parse_args()
 
 
 def main():
     args = parse_ars()
-    process(args)
+    run(args)
 
 
 if __name__ == '__main__':

@@ -51,10 +51,10 @@ def set_logging():
 def parse_ars():
     parser = argparse.ArgumentParser()
     parser.add_argument('--dir_roots_in', nargs='+',
-                        default=['/media/manu/kingstoo/yolov5/custom_head_cut',
-                                 '/media/manu/kingstoo/yolov5/custom_head_v1_f'],
+                        default=['/media/sdb/data/custom_head_v1r',
+                                 '/media/sdb/data/custom_head_v2_f'],
                         type=str)
-    parser.add_argument('--dir_root_out', default='/media/manu/kingstoo/yolov5/custom_head_v1r', type=str)
+    parser.add_argument('--dir_root_out', default='/media/sdb/data/custom_head_v2r', type=str)
     parser.add_argument('--subsets', nargs='+', default=['train', 'val'], type=str)
     return parser.parse_args()
 

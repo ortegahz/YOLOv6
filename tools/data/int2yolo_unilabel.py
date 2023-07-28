@@ -18,7 +18,7 @@ def process(args):
         name_txt = name_img.replace('.jpg', '.txt')
 
         path_label = path_img.replace('.jpg', '.txt')
-        path_label = path_label.replace('imgs', 'labels')
+        path_label = path_label.replace('images', 'labels')
 
         path_trainset_txt = os.path.join(args.dir_root_out, 'train.txt')
         path_valset_txt = os.path.join(args.dir_root_out, 'val.txt')
@@ -44,7 +44,8 @@ def process(args):
             with open(path_label_out, 'w') as f:
                 for line in lines:
                     l, xc, yc, w, h = line.split()
-                    f.writelines(f'0 {xc} {yc} {w} {h}\n')
+                    if l == '0' or l == '2':  # '1' stand for del labels
+                        f.writelines(f'0 {xc} {yc} {w} {h}\n')
 
 
 
@@ -64,8 +65,8 @@ def make_dirs(args):
 def parse_ars():
     set_logging()
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dir_imgs_in', default='/media/manu/kingstoo/yolov5/custom_head_v1/merge/imgs', type=str)
-    parser.add_argument('--dir_root_out', default='/media/manu/kingstoo/yolov5/custom_head_v1_f', type=str)
+    parser.add_argument('--dir_imgs_in', default='/media/manu/kingstoo/yolov5/custom_head_v2/images', type=str)
+    parser.add_argument('--dir_root_out', default='/media/manu/kingstoo/yolov5/custom_head_v2_f', type=str)
     parser.add_argument('--rate_val', default=5000 / 118287., type=float)
     return parser.parse_args()
 

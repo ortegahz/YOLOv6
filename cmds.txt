@@ -13,6 +13,7 @@ nnie_mapper_12 data/segmentation/segnet/segnet_inst.cfg && cp data/segmentation/
 nnie_mapper_12 data/detection/yolov2/yolov2_inst.cfg && cp data/detection/yolov2/inst/inst_yolov2_inst.wk /home/manu/nfs/Hi3519AV100_SDK_V2.0.0.2/smp/a53_linux/mpp/sample/svp/nnie/data/nnie_model/detection -rvf
 nnie_mapper_12 ./yolov3_inst.cfg
 nnie_mapper_12 ./yolov6_func.cfg
+
 # map
 cd /tmp/pycharm_project_743
 conda activate ssd

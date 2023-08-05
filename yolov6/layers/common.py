@@ -194,6 +194,16 @@ class Transpose(nn.Module):
         return self.upsample_transpose(x)
 
 
+class Upsample(nn.Module):
+    '''for upsampling'''
+    def __init__(self, in_channels, out_channels, kernel_size=2, stride=2):
+        super().__init__()
+        self.upsample = torch.nn.Upsample(scale_factor=2, mode='bilinear')
+
+    def forward(self, x):
+        return self.upsample(x)
+
+
 class RepVGGBlock(nn.Module):
     '''RepVGGBlock is a basic rep-style block, including training and deploy status
     This code is based on https://github.com/DingXiaoH/RepVGG/blob/main/repvgg.py
@@ -705,6 +715,32 @@ class BiFusion(nn.Module):
         self.cv3 = ConvBNReLU(out_channels * 3, out_channels, 1, 1)
 
         self.upsample = Transpose(
+            in_channels=out_channels,
+            out_channels=out_channels,
+        )
+        self.downsample = ConvBNReLU(
+            in_channels=out_channels,
+            out_channels=out_channels,
+            kernel_size=3,
+            stride=2
+        )
+
+    def forward(self, x):
+        x0 = self.upsample(x[0])
+        x1 = self.cv1(x[1])
+        x2 = self.downsample(self.cv2(x[2]))
+        return self.cv3(torch.cat((x0, x1, x2), dim=1))
+
+
+class BiFusionRKNN(nn.Module):
+    '''BiFusion Block in PAN'''
+    def __init__(self, in_channels, out_channels):
+        super().__init__()
+        self.cv1 = ConvBNReLU(in_channels[0], out_channels, 1, 1)
+        self.cv2 = ConvBNReLU(in_channels[1], out_channels, 1, 1)
+        self.cv3 = ConvBNReLU(out_channels * 3, out_channels, 1, 1)
+
+        self.upsample = Upsample(
             in_channels=out_channels,
             out_channels=out_channels,
         )

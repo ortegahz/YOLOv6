@@ -15,6 +15,7 @@ nnie_mapper_12 ./yolov3_inst.cfg
 nnie_mapper_12 ./yolov6_func.cfg
 
 # map
+ssh ortega@192.168.3.10
 cd /tmp/pycharm_project_743
 conda activate ssd
 
@@ -22,6 +23,9 @@ conda activate ssd
 python tools/data/int_disp.py --show
 
 # train head detection mode
+* yolov6n_rknn
+screen python -m torch.distributed.launch --nproc_per_node 8 tools/train.py --batch 64 --conf configs/yolov6n_rknn_finetune.py --data data/head.yaml --device 0,1,2,3,4,5,6,7 --img-size 640 --nnie
+
 * yolov6n
 screen python -m torch.distributed.launch --nproc_per_node 8 tools/train.py --batch 64 --conf configs/yolov6n_finetune.py --data data/head.yaml --device 0,1,2,3,4,5,6,7 --img-size 640 --nnie
 
@@ -33,12 +37,12 @@ python -m torch.distributed.launch --nproc_per_node 8 tools/train.py --batch 32 
 screen python -m torch.distributed.launch --nproc_per_node 8 tools/train.py --batch 16 --conf configs/yolov6s6_finetune.py --data data/head.yaml --device 0,1,2,3,4,5,6,7 --img-size 1280
 
 # infer
-python tools/infer.py --weights /home/manu/tmp/n6_ft_b64_nab_s640_dv2r_ncml_nsilu/weights/best_ckpt.pt --yaml data/head.yaml --conf 0.4 --name head --source /media/manu/samsung/pics/students_lt.bmp --img-size 640 640 --save-txt
+python tools/infer.py --weights /home/manu/tmp/n6_ft_b64_nab_s640_dv2r_ncml_nsilu_ncont/weights/best_ckpt.pt --yaml data/head.yaml --conf 0.4 --name head --source /media/manu/samsung/pics/students_lt.bmp --img-size 640 640 --save-txt
 
 python tools/infer.py --weights /home/manu/tmp/n6_ft_b64_nab_s640_dv2r_ncml_nsilu/weights/best_ckpt.pt --yaml data/head.yaml --conf 0.4 --name head --source /media/manu/kingstoo/tmp/vlc-record-2023-05-16-11h08m28s-rtsp___192.168.30.155_554_av_live-.mp4 --img-size 1280 1280 --hide-labels --view-img
 
 # test
-python tools/eval.py --data data/head.yaml  --weights runs/train/exp/weights/best_ckpt.pt --task val --device 0 --img-size 1280
+python tools/eval.py --data data/head.yaml  --weights runs/train/exp8/weights/best_ckpt.pt --task val --device 0 --img-size 1280
 python tools/eval.py --data data/head.yaml  --weights /media/manu-pc/tmp/n6_ft_b64_nab_s640_dv1r_ncml_nsilu/weights/best_ckpt.pt --task val --device 0 --img-size 1280
 
 # export
@@ -46,6 +50,8 @@ python ./deploy/ONNX/export_onnx.py --weights /home/manu/tmp/n6_ft_b64_nab_s640_
 
 python ./deploy/ONNX/export_onnx_nnie.py --weights /home/manu/tmp/n6_ft_b64_nab_s640_dv1r_ncml_nsilu/weights/best_ckpt.pt --img-size 640 --batch 1 --simplify && cp /home/manu/tmp/n6_ft_b64_nab_s640_dv1r_ncml_nsilu/weights/best_ckpt.onnx /home/manu/tmp/acfree.onnx -rvf
 
+python ./deploy/ONNX/export_onnx.py --weights /home/manu/tmp/n6_ft_b64_nab_s640_dv2r_ncml_nsilu_ncont/weights/best_ckpt.pt --img-size 640 --batch 1 --simplify && cp /home/manu/tmp/n6_ft_b64_nab_s640_dv2r_ncml_nsilu_ncont/weights/best_ckpt.onnx /home/manu/tmp/acfree.onnx -rvf
+
 # tensorboard
-tensorboard --logdir runs/train/exp --bind_all
+tensorboard --logdir runs/train/exp8 --bind_all
 http://192.168.3.10:6006/

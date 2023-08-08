@@ -49,11 +49,13 @@ python tools/eval.py --data data/head.yaml  --weights runs/train/exp7/weights/be
 python tools/eval.py --data data/head.yaml  --weights /media/manu-pc/tmp/n6_ft_b64_nab_s640_dv1r_ncml_nsilu/weights/best_ckpt.pt --task val --device 0 --img-size 1280
 
 # export
+* normal
 python ./deploy/ONNX/export_onnx.py --weights /home/manu/tmp/n6_ft_b64_nab_s640_dv2r_ncml_nsilu/weights/best_ckpt.pt --img-size 640 --batch 1 --simplify && cp /home/manu/tmp/n6_ft_b64_nab_s640_dv2r_ncml_nsilu/weights/best_ckpt.onnx /home/manu/tmp/acfree.onnx -rvf
 
-python ./deploy/ONNX/export_onnx_nnie.py --weights /home/manu/tmp/n6_ft_b64_nab_s640_dv1r_ncml_nsilu/weights/best_ckpt.pt --img-size 640 --batch 1 --simplify && cp /home/manu/tmp/n6_ft_b64_nab_s640_dv1r_ncml_nsilu/weights/best_ckpt.onnx /home/manu/tmp/acfree.onnx -rvf
-
 python ./deploy/ONNX/export_onnx.py --weights /home/manu/tmp/nn6_ft_b32_nab_s1280_dv2r_ncml_nsilu_ncont/weights/best_ckpt.pt --img-size 1280 --batch 1 --simplify && cp /home/manu/tmp/nn6_ft_b32_nab_s1280_dv2r_ncml_nsilu_ncont/weights/best_ckpt.onnx /home/manu/tmp/acfree.onnx -rvf
+
+* nnie
+python ./deploy/ONNX/export_onnx_nnie.py --weights /home/manu/tmp/n6_ft_b64_nab_s640_dv1r_ncml_nsilu/weights/best_ckpt.pt --img-size 640 --batch 1 --simplify && cp /home/manu/tmp/n6_ft_b64_nab_s640_dv1r_ncml_nsilu/weights/best_ckpt.onnx /home/manu/tmp/acfree.onnx -rvf
 
 # tensorboard
 tensorboard --logdir runs/train/exp7 --bind_all

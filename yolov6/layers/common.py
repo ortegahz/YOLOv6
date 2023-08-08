@@ -195,10 +195,10 @@ class Transpose(nn.Module):
 
 
 class Upsample(nn.Module):
-    '''for upsampling'''
-    def __init__(self, in_channels, out_channels, kernel_size=2, stride=2):
+    '''For upsampling'''
+    def __init__(self, scale_factor=2):
         super().__init__()
-        self.upsample = torch.nn.Upsample(scale_factor=2, mode='bilinear')
+        self.upsample = torch.nn.Upsample(scale_factor=scale_factor, mode='bilinear')
 
     def forward(self, x):
         return self.upsample(x)
@@ -740,10 +740,7 @@ class BiFusionRKNN(nn.Module):
         self.cv2 = ConvBNReLU(in_channels[1], out_channels, 1, 1)
         self.cv3 = ConvBNReLU(out_channels * 3, out_channels, 1, 1)
 
-        self.upsample = Upsample(
-            in_channels=out_channels,
-            out_channels=out_channels,
-        )
+        self.upsample = Upsample()
         self.downsample = ConvBNReLU(
             in_channels=out_channels,
             out_channels=out_channels,

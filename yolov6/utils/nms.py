@@ -98,6 +98,7 @@ def non_max_suppression(prediction, conf_thres=0.25, iou_thres=0.45, classes=Non
             keep_box_idx = keep_box_idx[:max_det]
 
         output[img_idx] = x[keep_box_idx]
+        # output[img_idx] = x  # disable nms
         if (time.time() - tik) > time_limit:
             print(f'WARNING: NMS cost time exceed the limited {time_limit}s.')
             break  # time limit exceeded

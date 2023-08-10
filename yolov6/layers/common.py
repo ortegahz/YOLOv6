@@ -572,6 +572,8 @@ class RKNNDetectBackend(nn.Module):
             b, _, h, w = ys.shape
             l = h * w
             reg_output, cls_output, cls_output_phone = ys[:, 1:5, :, :], ys[:, 0, :, :], ys[:, 5, :, :]
+            cls_output = torch.sigmoid(cls_output)
+            cls_output_phone = torch.sigmoid(cls_output_phone)
             cls_score_list.append(cls_output.reshape([b, 1, l]))
             reg_dist_list.append(reg_output.reshape([b, 4, l]))
             cls_score_list_phone.append(cls_output_phone.reshape([b, 1, l]))

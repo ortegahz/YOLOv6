@@ -110,13 +110,20 @@ class Detect(nn.Module):
                     reg_output = reg_output.reshape([-1, 4, self.reg_max + 1, l]).permute(0, 2, 1, 3)
                     reg_output = self.proj_conv(F.softmax(reg_output, dim=1))
 
-                cls_output = torch.sigmoid(cls_output)
+                cls_output_sigmoid = torch.sigmoid(cls_output)
+
+                # np.savetxt('/home/manu/tmp/pytorch_outputs_cls_output_%s.txt' % i,
+                #            cls_output.detach().cpu().numpy().flatten(),
+                #            fmt="%f", delimiter="\n")
+                # np.savetxt('/home/manu/tmp/pytorch_outputs_reg_output_%s.txt' % i,
+                #            reg_output.detach().cpu().numpy().flatten(),
+                #            fmt="%f", delimiter="\n")
 
                 if self.export or self.export_pick:
                     cls_score_list.append(cls_output)
                     reg_dist_list.append(reg_output)
                 else:
-                    cls_score_list.append(cls_output.reshape([b, self.nc, l]))
+                    cls_score_list.append(cls_output_sigmoid.reshape([b, self.nc, l]))
                     reg_dist_list.append(reg_output.reshape([b, 4, l]))
 
             if self.export:

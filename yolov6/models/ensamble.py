@@ -1,3 +1,5 @@
+import numpy as np
+
 import torch
 import torch.nn as nn
 
@@ -21,4 +23,8 @@ class EnsambleModel(nn.Module):
             y_phone, f_phone = y_phone[0], y_phone[1]
         y = tuple(torch.cat([y_player_s, y_phone_s], 1)
                   for y_player_s, y_phone_s in zip(y_player, y_phone))
+        for i, ys in enumerate(y):
+            np.savetxt('/home/manu/tmp/pytorch_outputs_ys_%s.txt' % i,
+                       ys.detach().cpu().numpy().flatten(),
+                       fmt="%f", delimiter="\n")
         return y, f_player

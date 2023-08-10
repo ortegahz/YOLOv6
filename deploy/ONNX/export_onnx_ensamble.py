@@ -22,7 +22,7 @@ from io import BytesIO
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--export_dir_pt', default='/home/manu/tmp/model_phone', type=str)
-    parser.add_argument('--export_file_onnx', default='/home/manu/tmp/phone.onnx', type=str)
+    parser.add_argument('--export_file_onnx', default='/home/manu/tmp/player.onnx', type=str)
     parser.add_argument('--weights_player', default='/home/manu/tmp/nn6_ft_b64_nab_s1280_dl/weights/best_ckpt.pt',
                         type=str)
     parser.add_argument('--weights_phone', default='/home/manu/tmp/nn6_ft_b64_nab_s1280_dpc/weights/best_ckpt.pt',
@@ -99,7 +99,7 @@ if __name__ == '__main__':
         LOGGER.info('\nStarting to export ONNX...')
         export_file = args.export_file_onnx
         with BytesIO() as f:
-            torch.onnx.export(model, img, f, verbose=False, opset_version=13,
+            torch.onnx.export(model, img, f, verbose=False, opset_version=11,  # as rknn-toolit2 demand
                               training=torch.onnx.TrainingMode.EVAL,
                               do_constant_folding=True,
                               input_names=['images'],

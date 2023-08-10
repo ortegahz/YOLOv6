@@ -125,6 +125,8 @@ class Inferer:
                 os.makedirs(osp.join(save_dir, rel_path), exist_ok=True)
 
             gn = torch.tensor(img_src.shape)[[1, 0, 1, 0]]  # normalization gain whwh
+            print(img_src.shape)
+            print(gn)
             img_ori = img_src.copy()
 
             # check image and font

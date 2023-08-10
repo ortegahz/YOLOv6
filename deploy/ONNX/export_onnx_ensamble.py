@@ -4,6 +4,7 @@ import argparse
 import os
 import sys
 import time
+from copy import deepcopy
 
 import onnx
 
@@ -14,15 +15,18 @@ if str(ROOT) not in sys.path:
 from yolov6.models.effidehead import Detect
 from yolov6.layers.common import *
 from yolov6.utils.events import LOGGER
-from yolov6.utils.checkpoint import load_checkpoint
+from yolov6.utils.checkpoint import load_checkpoint, save_checkpoint
 from yolov6.models.ensamble import EnsambleModel
 from io import BytesIO
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--weights', type=str, default='./yolov6s.pt', help='weights path')
-    parser.add_argument('--weights_player', default='/home/manu/tmp/exp16/weights/best_ckpt.pt', type=str)
-    parser.add_argument('--weights_phone', default='/home/manu/tmp/exp12/weights/best_ckpt.pt', type=str)
+    parser.add_argument('--export_dir_pt', default='/home/manu/tmp/model_phone', type=str)
+    parser.add_argument('--export_file_onnx', default='/home/manu/tmp/phone.onnx', type=str)
+    parser.add_argument('--weights_player', default='/home/manu/tmp/nn6_ft_b64_nab_s1280_dl/weights/best_ckpt.pt',
+                        type=str)
+    parser.add_argument('--weights_phone', default='/home/manu/tmp/nn6_ft_b64_nab_s1280_dpc/weights/best_ckpt.pt',
+                        type=str)
     parser.add_argument('--img-size', nargs='+', type=int, default=[640, 640],
                         help='image size, the order is: height width')  # height, width
     parser.add_argument('--batch-size', type=int, default=1, help='batch size')
@@ -84,10 +88,16 @@ if __name__ == '__main__':
 
     y = model(img)  # dry run
 
+    # pytorch export
+    ckpt = {
+        'model': deepcopy(model).half(),
+    }
+    save_checkpoint(ckpt, False, args.export_dir_pt, model_name='phone')
+
     # ONNX export
     try:
         LOGGER.info('\nStarting to export ONNX...')
-        export_file = args.weights.replace('.pt', '.onnx')  # filename
+        export_file = args.export_file_onnx
         with BytesIO() as f:
             torch.onnx.export(model, img, f, verbose=False, opset_version=13,
                               training=torch.onnx.TrainingMode.EVAL,

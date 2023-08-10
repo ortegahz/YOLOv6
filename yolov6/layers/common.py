@@ -8,7 +8,8 @@ import torch
 import torch.nn as nn
 import torch.nn.init as init
 from torch.nn.parameter import Parameter
-from yolov6.utils.general import download_ckpt
+from yolov6.utils.general import download_ckpt, dist2bbox
+from yolov6.assigners.anchor_generator import generate_anchors
 
 
 activation_table = {'relu':nn.ReLU(),
@@ -546,6 +547,55 @@ class LinearAddBlock(nn.Module):
             out += self.scale_identity(inputs)
         out = self.relu(self.se(self.bn(out)))
         return out
+
+
+class RKNNDetectBackend(nn.Module):
+    def __init__(self, weights='yolov6s.pt', device=None, dnn=True):
+        super().__init__()
+        assert os.path.exists(weights)
+        assert isinstance(weights, str) and Path(weights).suffix == '.pt', f'{Path(weights).suffix} format is not supported.'
+        from yolov6.utils.checkpoint import load_checkpoint
+        model = load_checkpoint(weights, map_location=device)
+        stride = model.stride
+        self.grid_cell_offset = 0.5
+        self.grid_cell_size = 5.0
+        self.__dict__.update(locals())  # assign all variables to self
+
+    def forward(self, im):
+        y, featmaps = self.model(im)
+        if isinstance(y, np.ndarray):
+            y = torch.tensor(y, device=self.device)
+        cls_score_list_phone = []
+        cls_score_list = []
+        reg_dist_list = []
+        for ys in y:
+            b, _, h, w = ys.shape
+            l = h * w
+            reg_output, cls_output, cls_output_phone = ys[:, 1:5, :, :], ys[:, 0, :, :], ys[:, 5, :, :]
+            cls_score_list.append(cls_output.reshape([b, 1, l]))
+            reg_dist_list.append(reg_output.reshape([b, 4, l]))
+            cls_score_list_phone.append(cls_output_phone.reshape([b, 1, l]))
+        cls_score_list_phone = torch.cat(cls_score_list_phone, axis=-1).permute(0, 2, 1)
+        cls_score_list = torch.cat(cls_score_list, axis=-1).permute(0, 2, 1)
+        reg_dist_list = torch.cat(reg_dist_list, axis=-1).permute(0, 2, 1)
+        anchor_points, stride_tensor = generate_anchors(
+            featmaps, self.stride, self.grid_cell_size, self.grid_cell_offset, device=self.device, is_eval=True, mode='af')
+        pred_bboxes = dist2bbox(reg_dist_list, anchor_points, box_format='xywh')
+        pred_bboxes *= stride_tensor
+        y_player = torch.cat(
+            [
+                pred_bboxes,
+                torch.ones((b, pred_bboxes.shape[1], 1), device=pred_bboxes.device, dtype=pred_bboxes.dtype),
+                cls_score_list
+            ],
+            axis=-1)
+        y_phone = torch.cat(
+            [
+                torch.ones((b, pred_bboxes.shape[1], 1), device=pred_bboxes.device, dtype=pred_bboxes.dtype),
+                cls_score_list_phone
+            ],
+            axis=-1)
+        return y_player, y_phone
 
 
 class DetectBackend(nn.Module):

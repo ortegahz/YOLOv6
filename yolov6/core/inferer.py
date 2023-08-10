@@ -3,6 +3,7 @@
 import os
 import cv2
 import time
+import copy
 import math
 import torch
 import numpy as np
@@ -14,7 +15,7 @@ from PIL import ImageFont
 from collections import deque
 
 from yolov6.utils.events import LOGGER, load_yaml
-from yolov6.layers.common import DetectBackend
+from yolov6.layers.common import DetectBackend, RKNNDetectBackend
 from yolov6.data.data_augment import letterbox
 from yolov6.data.datasets import LoadData
 from yolov6.utils.nms import non_max_suppression
@@ -31,6 +32,7 @@ class Inferer:
         cuda = self.device != 'cpu' and torch.cuda.is_available()
         self.device = torch.device(f'cuda:{device}' if cuda else 'cpu')
         self.model = DetectBackend(weights, device=self.device)
+        self.model_rknn = RKNNDetectBackend(weights, device=self.device)
         self.stride = self.model.stride
         self.class_names = load_yaml(yaml)['names']
         self.img_size = self.check_img_size(self.img_size, s=self.stride)  # check image size
@@ -46,8 +48,8 @@ class Inferer:
             self.model.model.float()
             self.half = False
 
-        if self.device.type != 'cpu':
-            self.model(torch.zeros(1, 3, *self.img_size).to(self.device).type_as(next(self.model.model.parameters())))  # warmup
+        # if self.device.type != 'cpu':
+        #     self.model(torch.zeros(1, 3, *self.img_size).to(self.device).type_as(next(self.model.model.parameters())))  # warmup
 
         # Load data
         self.webcam = webcam
@@ -80,6 +82,21 @@ class Inferer:
             det[:, :4] = self.rescale(img.shape[2:], det[:, :4], img_src.shape).round()
 
         return det
+
+
+    def infer_rknn(self, img_src, conf_thres, iou_thres, classes, agnostic_nms, max_det):
+        img, img_src = self.process_image(img_src, self.img_size, self.stride, self.half)
+        img = img.to(self.device)
+        if len(img.shape) == 3:
+            img = img[None]
+            # expand for batch dim
+        pred_results, pred_results_phone = self.model_rknn(img)
+        det = non_max_suppression(pred_results, conf_thres, iou_thres, classes, agnostic_nms, max_det=max_det)[0]
+        det_unrs = copy.deepcopy(det)
+        if len(det):
+            det[:, :4] = self.rescale(img.shape[2:], det[:, :4], img_src.shape).round()
+
+        return det, det_unrs, pred_results_phone
 
 
     def infer(self, conf_thres, iou_thres, classes, agnostic_nms, max_det, save_dir, save_txt, save_img, hide_labels, hide_conf, view_img=True):

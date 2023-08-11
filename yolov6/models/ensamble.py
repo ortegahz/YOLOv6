@@ -21,8 +21,11 @@ class EnsambleModel(nn.Module):
         f_phone = None
         if isinstance(y_phone, list):
             y_phone, f_phone = y_phone[0], y_phone[1]
-        y = tuple(torch.cat([y_player_s, y_phone_s], 1)
-                  for y_player_s, y_phone_s in zip(y_player, y_phone))
+        y_phone_o = torch.cat(y_phone, axis=-1)
+        # y = tuple(torch.cat([y_player_s, y_phone_s], 1)
+        #           for y_player_s, y_phone_s in zip(y_player, y_phone))
+        y = [y_player_s for y_player_s in y_player]
+        y.append(y_phone_o)
         for i, ys in enumerate(y):
             np.savetxt('/home/manu/tmp/pytorch_outputs_ys_%s.txt' % i,
                        ys.detach().cpu().numpy().flatten(),

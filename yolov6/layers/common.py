@@ -565,19 +565,16 @@ class RKNNDetectBackend(nn.Module):
         y, featmaps = self.model(im)
         if isinstance(y, np.ndarray):
             y = torch.tensor(y, device=self.device)
-        cls_score_list_phone = []
         cls_score_list = []
         reg_dist_list = []
-        for ys in y:
+        for ys in y[:4]:
             b, _, h, w = ys.shape
             l = h * w
-            reg_output, cls_output, cls_output_phone = ys[:, 1:5, :, :], ys[:, 0, :, :], ys[:, 5, :, :]
+            reg_output, cls_output = ys[:, 1:5, :, :], ys[:, 0, :, :]
             cls_output = torch.sigmoid(cls_output)
-            cls_output_phone = torch.sigmoid(cls_output_phone)
             cls_score_list.append(cls_output.reshape([b, 1, l]))
             reg_dist_list.append(reg_output.reshape([b, 4, l]))
-            cls_score_list_phone.append(cls_output_phone.reshape([b, 1, l]))
-        cls_score_list_phone = torch.cat(cls_score_list_phone, axis=-1).permute(0, 2, 1)
+        cls_score_list_phone = torch.sigmoid(y[-1].permute(0, 2, 1))
         cls_score_list = torch.cat(cls_score_list, axis=-1).permute(0, 2, 1)
         reg_dist_list = torch.cat(reg_dist_list, axis=-1).permute(0, 2, 1)
         anchor_points, stride_tensor = generate_anchors(

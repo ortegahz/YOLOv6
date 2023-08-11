@@ -119,7 +119,10 @@ class Detect(nn.Module):
                 #            reg_output.detach().cpu().numpy().flatten(),
                 #            fmt="%f", delimiter="\n")
 
-                if self.export or self.export_pick:
+                if self.export_pick:
+                    cls_score_list.append(cls_output.reshape([b, self.nc, l]))
+                    reg_dist_list.append(reg_output)
+                elif self.export:
                     cls_score_list.append(cls_output)
                     reg_dist_list.append(reg_output)
                 else:

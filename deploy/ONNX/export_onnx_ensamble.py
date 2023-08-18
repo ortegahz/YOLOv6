@@ -49,15 +49,16 @@ if __name__ == '__main__':
     cuda = args.device != 'cpu' and torch.cuda.is_available()
     device = torch.device(f'cuda:{args.device}' if cuda else 'cpu')
     assert not (device.type == 'cpu' and args.half), '--half only compatible with GPU export, i.e. use --device 0'
-    # Load PyTorch model
+    # Load PyTorch player model
     model_player = load_checkpoint(args.weights_player, map_location=device, inplace=True, fuse=True)  # load FP32 model
     for layer in model_player.modules():
         if isinstance(layer, RepVGGBlock):
             layer.switch_to_deploy()
         elif isinstance(layer, nn.Upsample) and not hasattr(layer, 'recompute_scale_factor'):
             layer.recompute_scale_factor = None  # torch 1.11.0 compatibility
+    # Load PyTorch phone model
     model_phone = load_checkpoint(args.weights_phone, map_location=device, inplace=True, fuse=True)  # load FP32 model
-    for layer in model_player.modules():
+    for layer in model_phone.modules():
         if isinstance(layer, RepVGGBlock):
             layer.switch_to_deploy()
         elif isinstance(layer, nn.Upsample) and not hasattr(layer, 'recompute_scale_factor'):

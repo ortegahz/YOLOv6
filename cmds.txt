@@ -38,6 +38,10 @@ python tools/eval.py --data data/play.yaml  --weights runs/train/exp13/weights/b
 python tools/eval.py --data data/play.yaml  --weights runs/train/exp16/weights/best_ckpt.pt --task val --device 0 --img-size 1280
 
 # export
+python ./deploy/ONNX/export_onnx.py --weights /home/manu/tmp/nn6_ft_b64_nab_s1280_dl/weights/best_ckpt.pt --img-size 1280 --batch 1 --simplify && cp /home/manu/tmp/nn6_ft_b64_nab_s1280_dl/weights/best_ckpt.onnx /home/manu/tmp/acfree.onnx -rvf
+
+python ./deploy/ONNX/export_onnx.py --weights /home/manu/tmp/nn6_ft_b64_nab_s1280_dpc/weights/best_ckpt.pt --img-size 1280 --batch 1 --simplify && cp /home/manu/tmp/nn6_ft_b64_nab_s1280_dpc/weights/best_ckpt.onnx /home/manu/tmp/acfree.onnx -rvf
+
 python ./deploy/ONNX/export_onnx_ensamble.py --img 1280 --batch 1 --simplify
 
 # tensorboard

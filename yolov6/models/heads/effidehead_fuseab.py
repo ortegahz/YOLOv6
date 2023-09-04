@@ -10,6 +10,8 @@ from yolov6.utils.general import dist2bbox
 class Detect(nn.Module):
     '''Efficient Decoupled Head for fusing anchor-base branches.
     '''
+    export_nnie = False
+
     def __init__(self, num_classes=80, anchors=None, num_layers=3, inplace=True, head_layers=None, use_dfl=True, reg_max=16):  # detection layer
         super().__init__()
         assert head_layers is not None
@@ -164,10 +166,31 @@ class Detect(nn.Module):
                     reg_output_box = reg_output_box.reshape([-1, 4, self.reg_max + 1, l]).permute(0, 2, 1, 3)
                     reg_output_box = self.proj_conv(F.softmax(reg_output_box, dim=1))
 
-                cls_output = torch.sigmoid(cls_output)
-                cls_score_list.append(cls_output.reshape([b, self.nc, l]))
-                reg_dist_list.append(reg_output_box.reshape([b, 4, l]))
-                reg_ldmk_list.append(reg_output_ldmk.reshape([b, 10, l]))
+                # np.savetxt('/home/manu/tmp/pytorch_outputs_cls_output_%s.txt' % i,
+                #            cls_output.detach().cpu().numpy().flatten(),
+                #            fmt="%f", delimiter="\n")
+                # np.savetxt('/home/manu/tmp/pytorch_outputs_reg_output_%s.txt' % i,
+                #            reg_output.detach().cpu().numpy().flatten(),
+                #            fmt="%f", delimiter="\n")
+
+                np.savetxt('/home/manu/tmp/pytorch_outputs_%s.txt' % i,
+                           torch.cat([reg_output, cls_output], 1).detach().cpu().numpy().flatten(),
+                           fmt="%f", delimiter="\n")
+
+                cls_output_sigmoid = torch.sigmoid(cls_output)
+
+                if self.export_nnie:
+                    cls_score_list.append(cls_output)
+                    reg_dist_list.append(reg_output)
+                else:
+                    cls_score_list.append(cls_output_sigmoid.reshape([b, self.nc, l]))
+                    reg_dist_list.append(reg_output_box.reshape([b, 4, l]))
+                    reg_ldmk_list.append(reg_output_ldmk.reshape([b, 10, l]))
+
+            if self.export_nnie:
+                export_outputs = tuple(torch.cat([reg, cls], 1)
+                                       for cls, reg in zip(cls_score_list, reg_dist_list))
+                return export_outputs
                 
             cls_score_list = torch.cat(cls_score_list, axis=-1).permute(0, 2, 1)
             reg_dist_list = torch.cat(reg_dist_list, axis=-1).permute(0, 2, 1)

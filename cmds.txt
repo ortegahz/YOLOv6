@@ -1,0 +1,7 @@
+# infer
+python tools/infer.py --weights /home/manu/tmp/yolov6n_face.pt --source /media/manu/samsung/pics/students_lt.bmp --yaml data/WIDER_FACE.yaml --conf 0.4 --name widerface_yolov6n
+
+# export
+python ./deploy/ONNX/export_onnx.py --weights /home/manu/tmp/yolov6n_face.pt --img 640 --batch 1 --simplify
+
+python ./deploy/ONNX/export_onnx_nnie.py --weights /home/manu/tmp/yolov6n_face.pt --img-size 640 --batch 1 --simplify && cp /home/manu/tmp/yolov6n_face.onnx /home/manu/tmp/face.onnx -rvf

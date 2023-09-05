@@ -1,7 +1,56 @@
+# map
+cd /tmp/pycharm_project_743
+conda activate ssd
+
+# train
+screen python -m torch.distributed.launch --nproc_per_node 8 tools/train.py --batch 64 --conf configs/yolov6n_finetune.py --data data/WIDER_FACE.yaml --fuse_ab --device 0,1,2,3,4,5,6,7 --img-size 640 --nnie
+
+# test
+python tools/infer.py --weights /home/manu/tmp/s640_ncml_nsilu/weights/last_ckpt.pt --source /media/manu/samsung/widerface/data/retinaface/val/images/ --yaml data/WIDER_FACE.yaml --conf 0.02 --not-save-img --save-txt-widerface --name widerface_yolov6n
+
+cd widerface_evaluate
+python evaluation.py --pred ../runs/inference/widerface_yolov6n/labels/
+
 # infer
-python tools/infer.py --weights /home/manu/tmp/yolov6n_face.pt --source /media/manu/samsung/pics/students_lt.bmp --yaml data/WIDER_FACE.yaml --conf 0.4 --name widerface_yolov6n
+python tools/infer.py --weights /home/manu/tmp/s640_ncml_nsilu/weights/last_ckpt.pt --source /media/manu/samsung/pics/students_lt.bmp --yaml data/WIDER_FACE.yaml --conf 0.4 --name yolov6n
 
 # export
 python ./deploy/ONNX/export_onnx.py --weights /home/manu/tmp/yolov6n_face.pt --img 640 --batch 1 --simplify
 
 python ./deploy/ONNX/export_onnx_nnie.py --weights /home/manu/tmp/yolov6n_face.pt --img-size 640 --batch 1 --simplify && cp /home/manu/tmp/yolov6n_face.onnx /home/manu/tmp/face.onnx -rvf
+
+python ./deploy/ONNX/export_onnx_nnie.py --weights /home/manu/tmp/exp10/weights/last_ckpt.pt --img-size 640 --batch 1 --simplify && cp /home/manu/tmp/exp10/weights/last_ckpt.onnx /home/manu/tmp/face.onnx -rvf
+
+# env
+export PATH=/home/manu/softwares/protobuf-3.5.1/bin:$PATH \
+export LD_LIBRARY_PATH=/home/manu/softwares/protobuf-3.5.1/lib:$LD_LIBRARY_PATH \
+export PKG_CONFIG_PATH=/home/manu/softwares/protobuf-3.5.1/lib/pkgconfig:$PKG_CONFIG_PATH
+
+export PATH=/home/manu/softwares/opencv-3.4.0/bin:$PATH \
+export LD_LIBRARY_PATH=/home/manu/softwares/opencv-3.4.0/lib:$LD_LIBRARY_PATH \
+export PKG_CONFIG_PATH=/home/manu/softwares/opencv-3.4.0/lib/pkgconfig
+
+# nnie_mapper
+nnie_mapper_12 ./data/classification/alexnet/alexnet_no_group_func.cfg
+nnie_mapper_12 data/segmentation/segnet/segnet_inst.cfg && cp data/segmentation/segnet/inst/segnet_inst.wk ~/nfs/Hi3519AV100_SDK_V2.0.0.2/smp/a53_linux/mpp/sample/svp/nnie/data/nnie_model/segmentation/ -rvf
+nnie_mapper_12 data/detection/yolov2/yolov2_inst.cfg && cp data/detection/yolov2/inst/inst_yolov2_inst.wk /home/manu/nfs/Hi3519AV100_SDK_V2.0.0.2/smp/a53_linux/mpp/sample/svp/nnie/data/nnie_model/detection -rvf
+nnie_mapper_12 ./yolov3_inst.cfg
+nnie_mapper_12 ./yolov6_func.cfg
+nnie_mapper_12 ./face_func.cfg
+
+# tensorboard
+tensorboard --logdir runs/train/exp11 --bind_all
+http://192.168.3.10:6006/
+
+# acc
+==================== official model yolov6n_face.pt ====================
+Easy   Val AP: 0.9495169221990704
+Medium Val AP: 0.9244110123077811
+Hard   Val AP: 0.8042969405203151
+=================================================
+
+==================== s640_ncml_nsilu ====================
+Easy   Val AP: 0.945470455673631
+Medium Val AP: 0.9225787701343503
+Hard   Val AP: 0.8061969804755946
+=================================================

@@ -53,6 +53,7 @@ def get_args_parser(add_help=True):
     parser.add_argument('--temperature', type=int, default=20, help='distill temperature')
     parser.add_argument('--fuse_ab', action='store_true', help='fuse ab branch in training process or not')
     parser.add_argument('--bs_per_gpu', default=8, type=int, help='batch size per GPU for auto-rescale learning rate, set to 16 for P6 models')
+    parser.add_argument('--nnie', action='store_true', help='train nnie compatible model')
     return parser
 
 

@@ -385,7 +385,8 @@ class Trainer:
             assert not self.args.distill, 'ERROR in: YOLOv6-lite models not support distill mode.'
             model = build_lite_model(cfg, nc, device)
         else:
-            model = build_model(cfg, nc, device, fuse_ab=self.args.fuse_ab, distill_ns=self.distill_ns)
+            model = build_model(cfg, nc, device, fuse_ab=self.args.fuse_ab,
+                                distill_ns=self.distill_ns, nnie=self.args.nnie)
         weights = cfg.model.pretrained
         if weights:  # finetune if pretrained model is set
             if not os.path.exists(weights):

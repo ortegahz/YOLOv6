@@ -121,8 +121,8 @@ class Inferer:
                 for detection in reversed(det):
                     xyxy, conf, cls, lmdks = detection[:4], detection[4], detection[5], detection[6:]
                     if save_txt:  # Write to file
-                        xywh = (self.box_convert(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
-                        line = (cls, xywh, lmdks, conf)
+                        xywh = (self.box_convert(torch.tensor(xyxy).view(1, 4).cpu()) / gn).view(-1).tolist()  # normalized xywh
+                        line = (cls, *xywh, *lmdks, conf)
                         with open(txt_path + '.txt', 'a') as f:
                             f.write(('%g ' * len(line)).rstrip() % line + '\n')
 

@@ -117,3 +117,15 @@ venv.bak/
 *.engine
 
 \.idea/
+
+*.dot
+
+deploy/NNIE/RUNTIME\.txt
+
+deploy/NNIE/netmem_info\.data
+
+deploy/NNIE/instruction\.txt
+
+deploy/NNIE/ibd_para\.txt
+
+deploy/NNIE/dout_nne_para\.txt

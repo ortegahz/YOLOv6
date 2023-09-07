@@ -173,9 +173,9 @@ class Detect(nn.Module):
                 #            reg_output.detach().cpu().numpy().flatten(),
                 #            fmt="%f", delimiter="\n")
 
-                # np.savetxt('/home/manu/tmp/pytorch_outputs_%s.txt' % i,
-                #            torch.cat([reg_output, cls_output], 1).detach().cpu().numpy().flatten(),
-                #            fmt="%f", delimiter="\n")
+                np.savetxt('/home/manu/tmp/pytorch_outputs_%s.txt' % i,
+                           torch.cat([reg_output, cls_output], 1).detach().cpu().numpy().flatten(),
+                           fmt="%f", delimiter="\n")
 
                 cls_output_sigmoid = torch.sigmoid(cls_output)
 

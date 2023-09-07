@@ -12,14 +12,14 @@ cd widerface_evaluate
 python evaluation.py --pred ../runs/inference/widerface_yolov6n/labels/
 
 # infer
-python tools/infer.py --weights /home/manu/tmp/s640_ncml_nsilu/weights/last_ckpt.pt --source /media/manu/samsung/pics/students_lt.bmp --yaml data/WIDER_FACE.yaml --conf 0.4 --name yolov6n
+python tools/infer.py --weights /home/manu/tmp/s640_ncml_nsilu/weights/last_ckpt.pt --source /media/manu/samsung/pics/students_lt.bmp --yaml data/WIDER_FACE.yaml --conf 0.4 --name yolov6n --save-txt
 
 # export
 python ./deploy/ONNX/export_onnx.py --weights /home/manu/tmp/yolov6n_face.pt --img 640 --batch 1 --simplify
 
 python ./deploy/ONNX/export_onnx_nnie.py --weights /home/manu/tmp/yolov6n_face.pt --img-size 640 --batch 1 --simplify && cp /home/manu/tmp/yolov6n_face.onnx /home/manu/tmp/face.onnx -rvf
 
-python ./deploy/ONNX/export_onnx_nnie.py --weights /home/manu/tmp/exp10/weights/last_ckpt.pt --img-size 640 --batch 1 --simplify && cp /home/manu/tmp/exp10/weights/last_ckpt.onnx /home/manu/tmp/face.onnx -rvf
+python ./deploy/ONNX/export_onnx_nnie.py --weights /home/manu/tmp/s640_ncml_nsilu/weights/last_ckpt.pt --img-size 640 --batch 1 --simplify && cp /home/manu/tmp/s640_ncml_nsilu/weights/last_ckpt.onnx /home/manu/tmp/face.onnx -rvf
 
 # env
 export PATH=/home/manu/softwares/protobuf-3.5.1/bin:$PATH \

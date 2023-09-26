@@ -37,8 +37,8 @@ def set_logging():
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--path_weights', type=str, default='/home/manu/tmp/acfree.onnx')
-    parser.add_argument('--path_img', default='/media/manu/samsung/pics/students_lt.bmp')
+    parser.add_argument('--path_weights', type=str, default='/home/manu/tmp/bhv.onnx')
+    parser.add_argument('--path_img', default='/media/manu/samsung/pics/bus_640x640.bmp')
     return parser.parse_args()
 
 

@@ -26,8 +26,8 @@ class EnsambleModel(nn.Module):
         #           for y_player_s, y_phone_s in zip(y_player, y_phone))
         y = [y_player_s for y_player_s in y_player]
         y.append(y_phone_o)
-        for i, ys in enumerate(y):
-            np.savetxt('/home/manu/tmp/pytorch_outputs_ys_%s.txt' % i,
-                       ys.detach().cpu().numpy().flatten(),
-                       fmt="%f", delimiter="\n")
+        # for i, ys in enumerate(y):
+        #     np.savetxt('/home/manu/tmp/pytorch_outputs_ys_%s.txt' % i,
+        #                ys.detach().cpu().numpy().flatten(),
+        #                fmt="%f", delimiter="\n")
         return y, f_player

@@ -110,17 +110,17 @@ class Detect(nn.Module):
                     reg_output = reg_output.reshape([-1, 4, self.reg_max + 1, l]).permute(0, 2, 1, 3)
                     reg_output = self.proj_conv(F.softmax(reg_output, dim=1))
 
-                np.savetxt('/home/manu/tmp/pytorch_outputs_cls_output_%s.txt' % i,
-                           cls_output.detach().cpu().numpy().flatten(),
-                           fmt="%f", delimiter="\n")
-                np.savetxt('/home/manu/tmp/pytorch_outputs_reg_output_%s.txt' % i,
-                           reg_output.detach().cpu().numpy().flatten(),
-                           fmt="%f", delimiter="\n")
+                # np.savetxt('/home/manu/tmp/pytorch_outputs_cls_output_%s.txt' % i,
+                #            cls_output.detach().cpu().numpy().flatten(),
+                #            fmt="%f", delimiter="\n")
+                # np.savetxt('/home/manu/tmp/pytorch_outputs_reg_output_%s.txt' % i,
+                #            reg_output.detach().cpu().numpy().flatten(),
+                #            fmt="%f", delimiter="\n")
 
                 cls_output_sigmoid = torch.sigmoid(cls_output)
 
                 cls_output_sigmoid_print = cls_output_sigmoid[cls_output_sigmoid > 0.4]
-                print(f'{h} {w} --> {len(cls_output_sigmoid_print.detach().cpu().numpy().flatten())}')
+                # print(f'{h} {w} --> {len(cls_output_sigmoid_print.detach().cpu().numpy().flatten())}')
 
                 if self.export_nnie:
                     cls_score_list.append(cls_output)

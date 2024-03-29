@@ -44,6 +44,8 @@ python tools/infer.py --weights /home/manu/tmp/nn6_ft_b32_nab_s1280_dv2r_ncml_ns
 
 python tools/infer.py --weights /home/manu/tmp/n6_ft_b64_nab_s640_dv2r_ncml_nsilu/weights/best_ckpt.pt --yaml data/head.yaml --conf 0.4 --name head --source /media/manu/kingstoo/tmp/vlc-record-2023-05-16-11h08m28s-rtsp___192.168.30.155_554_av_live-.mp4 --img-size 1280 1280 --hide-labels --view-img
 
+python tools/infer.py --weights /home/manu/tmp/n6_ft_b64_nab_s640_dv2r_ncml_nsilu_ncont/weights/best_ckpt.pt --yaml data/head.yaml --conf 0.4 --name head --source /media/manu/data/videos/vlc-record-2023-12-18-10h54m21s-rtsp___192.168.3.186_554_ch0_1-.mp4 --img-size 640 640 --hide-labels --view-img
+
 # test
 python tools/eval.py --data data/head.yaml  --weights runs/train/exp7/weights/best_ckpt.pt --task val --device 0 --img-size 1280
 python tools/eval.py --data data/head.yaml  --weights /media/manu-pc/tmp/n6_ft_b64_nab_s640_dv1r_ncml_nsilu/weights/best_ckpt.pt --task val --device 0 --img-size 1280
